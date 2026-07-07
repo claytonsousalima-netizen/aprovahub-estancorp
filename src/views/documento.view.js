@@ -253,7 +253,14 @@ export function renderDocumento(documentId) {
       )
       .join('');
 
-    const evid = [...(doc.approval_evidences || [])].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    // Só ações que representam decisão de fato tomada entram aqui — 'view'/'download'
+    // (registrados só pra auditoria de acesso) não significam que o documento foi
+    // aprovado/reprovado, e mostrá-los como "evidência de assinatura" confunde o
+    // usuário enquanto os botões de aprovar/reprovar ainda estão ativos.
+    const SIGNATURE_EVIDENCE_ACTIONS = new Set(['approve', 'reject', 'certificate_generated']);
+    const evid = [...(doc.approval_evidences || [])]
+      .filter((e) => SIGNATURE_EVIDENCE_ACTIONS.has(e.action))
+      .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     if (evid.length) {
       html += `<h3 style="margin:18px 0 8px">Evidências de assinatura</h3>`;
       html += evid
