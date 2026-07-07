@@ -12,7 +12,7 @@ O AprovaHub substitui o fluxo manual de aprovação de documentos administrativo
 - **Trilha de auditoria imutável**: toda aprovação gera uma evidência encadeada por hash (append-only); toda ação administrativa crítica gera uma entrada de log que não pode ser alterada nem apagada, nem por quem tem acesso direto ao banco.
 - **Certificado de aprovação com validação pública**: ao final da rota, o documento recebe um número de certificado com QR code e link de validação pública, sem exigir login.
 
-Este projeto foi construído em etapas incrementais (documentadas no histórico de commits/migrações); [SECURITY_CHECKLIST.md](SECURITY_CHECKLIST.md) resume o estado de segurança atual e [TEST_PLAN.md](TEST_PLAN.md) traz o plano de teste manual e os dados de seed usados para QA.
+Este projeto foi construído em etapas incrementais (documentadas no histórico de commits/migrações); [SECURITY_CHECKLIST.md](SECURITY_CHECKLIST.md) resume o estado de segurança atual, [TEST_PLAN.md](TEST_PLAN.md) traz o plano de teste manual e os dados de seed usados para QA, e [MANUAL_OPERACAO.html](MANUAL_OPERACAO.html) é o manual de operação para usuários finais, com todas as telas e os 10 perfis de acesso.
 
 ## Tecnologias
 
