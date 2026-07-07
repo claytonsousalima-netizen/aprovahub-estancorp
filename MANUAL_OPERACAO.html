@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual de Operação — AprovaHub Estancorp</title>
+<style>
+  :root{
+    --ink:#14232E;
+    --petrol:#0E3A4A;
+    --paper:#F6F4EF;
+    --card:#FFFFFF;
+    --brass:#A8823C;
+    --brass-soft:#F2EAD8;
+    --ok:#2E7D5B;
+    --ok-soft:#E4F0EA;
+    --warn:#B4831F;
+    --warn-soft:#F7EED9;
+    --danger:#B0442E;
+    --danger-soft:#F6E5E0;
+    --muted:#6B7680;
+    --line:#E4E0D6;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.55;
+  }
+  a{color:var(--petrol)}
+  .layout{display:flex;min-height:100vh}
+
+  /* Sidebar / sumário */
+  nav.toc{
+    width:300px;
+    flex:0 0 300px;
+    background:var(--ink);
+    color:#EDEAE1;
+    padding:28px 20px 60px;
+    position:sticky;
+    top:0;
+    align-self:flex-start;
+    height:100vh;
+    overflow-y:auto;
+  }
+  nav.toc .brand{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  nav.toc .brand-mark{
+    width:34px;height:34px;border-radius:9px;background:var(--brass);
+    color:var(--ink);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:18px;
+  }
+  nav.toc .brand b{display:block;font-size:15px}
+  nav.toc .brand small{display:block;color:#B9C2C8;font-size:11px}
+  nav.toc .sub{font-size:12px;color:#B9C2C8;margin:4px 0 22px;padding-bottom:18px;border-bottom:1px solid #2A3B47}
+  nav.toc h4{
+    font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#8FA0AA;
+    margin:20px 0 8px;
+  }
+  nav.toc ul{list-style:none;margin:0;padding:0}
+  nav.toc li a{
+    display:block;color:#D8D3C7;text-decoration:none;font-size:13.5px;
+    padding:6px 10px;border-radius:6px;
+  }
+  nav.toc li a:hover{background:#1D2E3A;color:#fff}
+  nav.toc li.sub-item a{padding-left:22px;font-size:12.5px;color:#AEB8BE}
+
+  main{flex:1;min-width:0;padding:48px 60px 120px;max-width:1080px}
+
+  .cover{
+    background:linear-gradient(135deg,var(--ink),var(--petrol));
+    color:#fff;border-radius:16px;padding:48px 44px;margin-bottom:44px;
+  }
+  .cover .kicker{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);font-weight:700}
+  .cover h1{font-size:34px;margin:10px 0 8px;line-height:1.15}
+  .cover p{color:#D9DEE1;max-width:620px;margin:0 0 4px}
+  .cover .meta{margin-top:26px;display:flex;gap:26px;flex-wrap:wrap;font-size:13px;color:#C7CFD3}
+  .cover .meta b{color:#fff;display:block;font-size:14px}
+
+  section{margin-bottom:56px;scroll-margin-top:24px}
+  h2{
+    font-size:23px;color:var(--ink);border-bottom:2px solid var(--brass);
+    padding-bottom:10px;margin:0 0 20px;
+  }
+  h2 .num{color:var(--brass);margin-right:8px}
+  h3{font-size:18px;margin:32px 0 12px;color:var(--petrol);scroll-margin-top:24px}
+  h3 .num{color:var(--brass)}
+  h4{font-size:14.5px;margin:20px 0 8px;color:var(--ink)}
+  p{margin:0 0 12px}
+  .lede{font-size:15px;color:#3B4A52}
+
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:22px 24px;margin:16px 0;
+  }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;word-break:break-word}
+  th{background:var(--brass-soft);color:var(--ink);font-weight:700;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em}
+  tr:hover td{background:#FBFAF6}
+
+  .badge{
+    display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;
+    margin:1px 3px 1px 0;white-space:nowrap;border:1px solid transparent;
+  }
+  .b-admin{background:var(--brass-soft);color:#7A5C22;border-color:#E4D3A8}
+  .b-approve{background:var(--ok-soft);color:var(--ok);border-color:#c3e2d3}
+  .b-view{background:#EDEEF0;color:#525C63;border-color:#DBDEE1}
+  .b-block{background:var(--danger-soft);color:var(--danger);border-color:#eccbc0}
+  .b-warn{background:var(--warn-soft);color:var(--warn);border-color:#ecdba8}
+
+  .pill-role{
+    display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;
+    background:var(--petrol);color:#fff;margin:2px 4px 2px 0;
+  }
+
+  .note{
+    border-left:4px solid var(--brass);background:var(--brass-soft);
+    padding:12px 16px;border-radius:0 8px 8px 0;font-size:13.5px;margin:14px 0;
+  }
+  .note.warn{border-color:var(--warn);background:var(--warn-soft)}
+  .note.danger{border-color:var(--danger);background:var(--danger-soft)}
+  .note.ok{border-color:var(--ok);background:var(--ok-soft)}
+  .note b{display:block;margin-bottom:3px}
+
+  .steps{counter-reset:step;list-style:none;margin:0;padding:0}
+  .steps li{
+    counter-increment:step;position:relative;padding:4px 0 18px 40px;border-left:2px solid var(--line);margin-left:15px;
+  }
+  .steps li:last-child{border-color:transparent;padding-bottom:0}
+  .steps li::before{
+    content:counter(step);position:absolute;left:-15px;top:0;width:28px;height:28px;border-radius:50%;
+    background:var(--ink);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  }
+  .steps li b{display:block;margin-bottom:3px;color:var(--ink)}
+
+  .fieldlist{margin:10px 0;padding:0;list-style:none}
+  .fieldlist li{padding:6px 0 6px 18px;border-bottom:1px dashed var(--line);position:relative;font-size:13.5px}
+  .fieldlist li::before{content:"›";position:absolute;left:0;color:var(--brass);font-weight:900}
+  .fieldlist li:last-child{border-bottom:none}
+  .fieldlist b{color:var(--ink)}
+  .fieldlist .req{color:var(--danger);font-size:11px;font-weight:700;margin-left:4px}
+  .fieldlist .opt{color:var(--muted);font-size:11px;font-weight:600;margin-left:4px}
+
+  .tag-access{
+    display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);
+    background:#FAF9F5;border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:10px 0 18px;
+  }
+
+  code, .mono{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:#EFEDE6;padding:1px 6px;border-radius:4px}
+
+  .toc-back{display:inline-block;margin-top:36px;font-size:12.5px}
+  .divider{height:1px;background:var(--line);margin:40px 0}
+
+  .table-scroll{overflow-x:auto;margin:14px 0;border-radius:10px}
+  .table-scroll table{margin:0;min-width:920px}
+  .matrix td, .matrix th{text-align:center;white-space:nowrap}
+  .matrix td:first-child, .matrix th:first-child{text-align:left;white-space:normal}
+  .yes{color:var(--ok);font-weight:800}
+  .no{color:#D6D2C8}
+
+  footer{color:var(--muted);font-size:12px;text-align:center;padding:30px 0 10px}
+
+  @media(max-width:1300px){
+    main{padding:40px 30px 100px}
+  }
+  @media(max-width:860px){
+    .layout{flex-direction:column}
+    nav.toc{width:100%;flex-basis:auto;height:auto;position:relative;top:auto}
+    main{padding:30px 18px 90px;max-width:none}
+    .cover{padding:32px 26px}
+    .cover h1{font-size:26px}
+  }
+
+  @media print{
+    nav.toc{display:none}
+    main{padding:0;max-width:none}
+    .table-scroll{overflow-x:visible}
+    .table-scroll table{min-width:0;font-size:10px}
+    .cover{background:none;color:var(--ink);border:1px solid var(--line)}
+    .cover .kicker,{color:var(--brass)}
+    section{page-break-inside:avoid}
+    a[href]::after{content:""}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc">
+  <div class="brand">
+    <div class="brand-mark">A</div>
+    <div><b>AprovaHub</b><small>Estancorp</small></div>
+  </div>
+  <div class="sub">Manual de Operação · v1.0</div>
+
+  <h4>Começando</h4>
+  <ul>
+    <li><a href="#intro">1. Visão geral</a></li>
+    <li><a href="#perfis">2. Perfis de usuário</a></li>
+    <li><a href="#acesso">3. Acesso ao sistema</a></li>
+  </ul>
+
+  <h4>Menu principal (todos)</h4>
+  <ul>
+    <li><a href="#dashboard">4.1 Dashboard</a></li>
+    <li><a href="#nova-solicitacao">4.2 Nova solicitação</a></li>
+    <li><a href="#pendentes">4.3 Minhas aprovações</a></li>
+    <li><a href="#arquivo">4.4 Arquivo eletrônico</a></li>
+    <li><a href="#notificacoes">4.5 Notificações</a></li>
+    <li><a href="#documento">4.6 Detalhe do documento</a></li>
+  </ul>
+
+  <h4>Menu de administração</h4>
+  <ul>
+    <li><a href="#admin-dashboard">5.1 Dashboard Admin</a></li>
+    <li><a href="#admin-companies">5.2 Empresas</a></li>
+    <li><a href="#admin-hotels">5.3 Hotéis</a></li>
+    <li><a href="#admin-users">5.4 Usuários</a></li>
+    <li><a href="#admin-hotel-users">5.5 Vínculo usuário × hotel</a></li>
+    <li><a href="#admin-roles">5.6 Perfis e permissões</a></li>
+    <li><a href="#admin-types">5.7 Tipos de aprovação</a></li>
+    <li><a href="#admin-rules">5.8 Regras de alçada</a></li>
+    <li><a href="#admin-security">5.9 Parâmetros de segurança</a></li>
+    <li><a href="#admin-audit">5.10 Logs de auditoria</a></li>
+  </ul>
+
+  <h4>Referência</h4>
+  <ul>
+    <li><a href="#fluxo">6. Fluxo de aprovação</a></li>
+    <li><a href="#seguranca">7. Segurança e evidências</a></li>
+    <li><a href="#matriz">8. Matriz de acesso por perfil</a></li>
+    <li><a href="#faq">9. Perguntas frequentes</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <div class="cover">
+    <div class="kicker">Manual de operação</div>
+    <h1>AprovaHub Estancorp</h1>
+    <p>Guia de uso do portal de aprovação eletrônica de documentos financeiros — cotações, compras, contratos e locações — com trilha de evidências, assinatura por senha ou MFA e certificado de aprovação.</p>
+    <div class="meta">
+      <div><b>10</b>perfis de usuário</div>
+      <div><b>23</b>telas</div>
+      <div><b>2</b>menus (operação e administração)</div>
+      <div><b>v1.0</b>07/07/2026</div>
+    </div>
+  </div>
+
+  <section id="intro">
+    <h2><span class="num">1.</span>Visão geral</h2>
+    <p class="lede">O AprovaHub é o portal onde qualquer solicitação de compra, cotação, contrato ou locação da Estancorp nasce, tramita pelas aprovações necessárias e vira um certificado com trilha eletrônica auditável — sem depender de e-mail, papel ou WhatsApp para saber quem aprovou o quê e quando.</p>
+
+    <div class="grid2">
+      <div class="card">
+        <h4>O que o sistema resolve</h4>
+        <ul class="fieldlist">
+          <li>Define automaticamente <b>quantas aprovações</b> um documento precisa, com base no hotel, no tipo e no valor.</li>
+          <li>Garante que <b>cada etapa</b> seja decidida pela pessoa certa, com <b>identidade confirmada</b> (senha ou segundo fator).</li>
+          <li>Registra uma <b>evidência</b> (hash encadeado) para cada aprovação/reprovação — ninguém edita o histórico depois.</li>
+          <li>Gera um <b>certificado</b> com número, QR code e trilha completa quando o documento é totalmente aprovado.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>O que o sistema <u>não</u> é</h4>
+        <ul class="fieldlist">
+          <li>Não é uma assinatura digital com validade jurídica plena (ICP-Brasil) — é uma <b>evidência eletrônica interna</b>. Veja a seção de <a href="#seguranca">Segurança e evidências</a>.</li>
+          <li>Não substitui contratos formais assinados fora do sistema, quando exigido por lei ou pela outra parte.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="note">
+      <b>Dois menus, dependendo de quem você é</b>
+      Todo usuário autenticado vê o <b>menu principal</b> (Dashboard, Nova solicitação, Minhas aprovações, Arquivo eletrônico, Notificações). Só quem tem o papel <span class="pill-role">super_admin</span>, <span class="pill-role">admin_corporativo</span> ou <span class="pill-role">admin_hotel</span> também vê o <b>menu de administração</b>, usado para cadastrar empresas, hotéis, usuários e as regras que definem o fluxo de aprovação.
+    </div>
+  </section>
+
+  <section id="perfis">
+    <h2><span class="num">2.</span>Perfis de usuário</h2>
+    <p class="lede">Cada usuário tem um <b>Papel Global</b> (cadastro da conta, vale para a empresa toda) e pode, além disso, ter um <b>Papel no Hotel</b> diferente em cada unidade em que atua. Essa distinção é o que define quem pode ver e aprovar cada documento.</p>
+
+    <div class="grid2">
+      <div class="card">
+        <h4>Papel Global <span class="badge b-view">profiles.role_global</span></h4>
+        <p style="margin:0;font-size:13.5px">Definido no cadastro do usuário (tela <a href="#admin-users">Usuários</a>). Vale em <b>qualquer hotel</b> da empresa — é o papel "padrão" da pessoa. Só admin corporativo/super admin altera.</p>
+      </div>
+      <div class="card">
+        <h4>Papel no Hotel <span class="badge b-view">hotel_users.role_hotel</span></h4>
+        <p style="margin:0;font-size:13.5px">Definido no vínculo usuário × hotel (tela <a href="#admin-hotel-users">Vínculo usuário × hotel</a>). Vale <b>só naquele hotel específico</b> — a mesma pessoa pode ter papéis diferentes (ou nenhum) em hotéis diferentes.</p>
+      </div>
+    </div>
+
+    <div class="note warn">
+      <b>⚠ Atenção ao acumular papéis</b>
+      Se o Papel Global de alguém bater com uma etapa de aprovação e o Papel no Hotel dessa mesma pessoa bater com <i>outra</i> etapa do <i>mesmo</i> documento, o sistema bloqueia: a partir da correção de segregação de funções, <b>o mesmo usuário nunca pode aprovar duas etapas do mesmo documento</b>, mesmo que ele "qualifique" para as duas por caminhos diferentes.
+    </div>
+
+    <div class="table-scroll" style="overflow-x:auto">
+    <table style="min-width:640px">
+      <thead><tr><th>Papel</th><th>Cria solicitação</th><th>Aprova</th><th>Administra</th><th>Responsabilidade típica</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill-role">super_admin</span></td><td class="yes">Sim</td><td class="yes">Se etapa exigir</td><td class="yes">Total, todas as empresas</td><td>Acesso técnico total do sistema.</td></tr>
+        <tr><td><span class="pill-role">admin_corporativo</span></td><td class="yes">Sim</td><td class="yes">Se etapa exigir</td><td class="yes">Toda a Estancorp</td><td>Administra empresas, hotéis, usuários, regras e segurança de toda a rede.</td></tr>
+        <tr><td><span class="pill-role">admin_hotel</span></td><td class="yes">Sim</td><td class="yes">Se etapa exigir</td><td>Só seus hotéis</td><td>Administra vínculos e regras das unidades sob sua responsabilidade.</td></tr>
+        <tr><td><span class="pill-role">solicitante</span></td><td class="yes">Sim</td><td class="no">Não</td><td class="no">Não</td><td>Cria documentos e acompanha só os que criou.</td></tr>
+        <tr><td><span class="pill-role">lider_area</span></td><td class="yes">Sim</td><td class="yes">Nível 1</td><td class="no">Não</td><td>Primeira aprovação, tipicamente vinculado a um hotel.</td></tr>
+        <tr><td><span class="pill-role">lider_administrativo</span></td><td class="yes">Sim</td><td class="yes">Nível 2</td><td class="no">Não</td><td>Segunda aprovação, alçada corporativa.</td></tr>
+        <tr><td><span class="pill-role">gerente_geral</span></td><td class="yes">Sim</td><td class="yes">Nível 3</td><td class="no">Não</td><td>Aprovação final para valores mais altos.</td></tr>
+        <tr><td><span class="pill-role">financeiro</span></td><td class="no">Não</td><td>Se etapa exigir</td><td class="no">Não</td><td>Consulta, audita e exporta; aprova só se a regra citar esse papel explicitamente.</td></tr>
+        <tr><td><span class="pill-role">auditor</span></td><td class="no">Não</td><td class="no">Não</td><td class="no">Não</td><td>Somente leitura de todos os documentos e evidências da empresa.</td></tr>
+        <tr><td><span class="pill-role">juridico</span></td><td class="no">Não</td><td class="no">Não</td><td class="no">Não</td><td>Consulta documentos e certificados, somente leitura.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p style="font-size:12.5px;color:var(--muted)">Referência completa dessas descrições dentro do próprio sistema: tela <a href="#admin-roles">Perfis e permissões</a> (menu de administração).</p>
+  </section>
+
+  <section id="acesso">
+    <h2><span class="num">3.</span>Acesso ao sistema</h2>
+
+    <h3 id="login"><span class="num">3.1</span>Login</h3>
+    <p>Tela inicial do sistema. Todo usuário entra com <b>e-mail e senha</b> corporativos.</p>
+    <ul class="fieldlist">
+      <li><b>E-mail</b><span class="req">obrigatório</span></li>
+      <li><b>Senha</b><span class="req">obrigatório</span></li>
+    </ul>
+    <p>Link <b>"Esqueci minha senha"</b> leva à recuperação. Depois do login, cada perfil cai numa tela diferente por padrão:</p>
+    <table>
+      <thead><tr><th>Perfil</th><th>Tela inicial</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill-role">lider_area</span> <span class="pill-role">lider_administrativo</span> <span class="pill-role">gerente_geral</span></td><td>Minhas aprovações</td></tr>
+        <tr><td><span class="pill-role">super_admin</span> <span class="pill-role">admin_corporativo</span> <span class="pill-role">admin_hotel</span></td><td>Dashboard Admin</td></tr>
+        <tr><td>Demais perfis</td><td>Dashboard</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="recuperar-senha"><span class="num">3.2</span>Recuperar senha</h3>
+    <p>Informe o e-mail cadastrado e clique em <b>Enviar link de recuperação</b>. Por segurança, a mensagem de confirmação é sempre a mesma, exista ou não uma conta com aquele e-mail.</p>
+
+    <h3 id="definir-senha"><span class="num">3.3</span>Definir nova senha (convite ou recuperação)</h3>
+    <p>Tela acessada a partir do link recebido por e-mail (convite de um administrador ou recuperação de senha).</p>
+    <ol class="steps">
+      <li><b>Se sua conta exige segundo fator (MFA)</b> — o sistema pede o código de 6 dígitos do seu aplicativo autenticador antes de liberar a troca de senha.</li>
+      <li><b>Nova senha</b> — mínimo 8 caracteres, com letra maiúscula, minúscula e número. Digite duas vezes para confirmar.</li>
+    </ol>
+    <div class="note warn"><b>Link expirado ou já usado</b> Peça um novo convite ou uma nova recuperação de senha — links de e-mail do Supabase só funcionam uma vez.</div>
+
+    <h3 id="alterar-senha"><span class="num">3.4</span>Alterar senha</h3>
+    <p>Disponível a qualquer momento para qualquer usuário autenticado. Basta informar a nova senha duas vezes e confirmar. A tela recomenda ativar o MFA para maior segurança.</p>
+
+    <h3 id="mfa"><span class="num">3.5</span>Autenticação em dois fatores (MFA)</h3>
+    <div class="grid2">
+      <div class="card">
+        <h4>Configurar MFA (primeira vez)</h4>
+        <p style="font-size:13.5px;margin:0">O sistema mostra um QR code para escanear em um app autenticador (Google Authenticator, Authy, 1Password etc.) — ou a chave secreta em texto, para digitar manualmente. Depois, digite o código de 6 dígitos gerado pelo app para confirmar e ativar.</p>
+      </div>
+      <div class="card">
+        <h4>Desafio MFA (a cada login)</h4>
+        <p style="font-size:13.5px;margin:0">Se a conta exige MFA, todo login pede o código de 6 dígitos do app autenticador antes de liberar o acesso. Há um link para trocar de conta caso o código não seja seu.</p>
+      </div>
+    </div>
+    <p>Quem <b>exige</b> MFA por papel é configurado pelo admin corporativo/super admin na tela <a href="#admin-security">Parâmetros de segurança</a>. Sem MFA obrigatório, a confirmação de identidade nas aprovações é feita por senha — veja <a href="#seguranca">Segurança e evidências</a>.</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <h2 style="border:none;margin-bottom:4px">Menu principal <span style="font-weight:400;font-size:15px;color:var(--muted)">— visível para todos os perfis autenticados</span></h2>
+  <p class="lede" style="margin-bottom:36px">Dashboard · Nova solicitação · Minhas aprovações · Arquivo eletrônico · Notificações</p>
+
+  <section id="dashboard">
+    <h3><span class="num">4.1</span>Dashboard</h3>
+    <div class="tag-access">👥 Acessível por todos os perfis autenticados — os dados exibidos variam conforme o que cada perfil pode ver.</div>
+    <p>Visão executiva com indicadores e listas de documentos. Filtros por hotel/unidade, tipo, status e período.</p>
+    <div class="grid2">
+      <div class="card">
+        <h4>Indicadores (KPIs)</h4>
+        <ul class="fieldlist">
+          <li>Total pendente (quantidade e valor em R$)</li>
+          <li>Aprovados no mês / Reprovados no mês</li>
+          <li>Tempo médio de ciclo (dias e horas)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Listas e tabelas</h4>
+        <ul class="fieldlist">
+          <li>Documentos por unidade (hotel)</li>
+          <li>Pendências por aprovador, com contagem de atrasados</li>
+          <li>Documentos parados além do SLA</li>
+          <li>Últimos documentos criados — clique numa linha para abrir o documento</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note">
+      <b>O que cada perfil enxerga</b>
+      <span class="pill-role">solicitante</span> vê só os documentos que criou. <span class="pill-role">lider_area</span>/<span class="pill-role">lider_administrativo</span>/<span class="pill-role">gerente_geral</span> veem os documentos em que estão no fluxo de aprovação. <span class="pill-role">admin_corporativo</span>/<span class="pill-role">financeiro</span>/<span class="pill-role">auditor</span>/<span class="pill-role">juridico</span> veem tudo da empresa. <span class="pill-role">admin_hotel</span> vê os hotéis sob sua responsabilidade. <span class="pill-role">super_admin</span> vê tudo.
+    </div>
+  </section>
+
+  <section id="nova-solicitacao">
+    <h3><span class="num">4.2</span>Nova solicitação</h3>
+    <div class="tag-access">🚫 Bloqueado para <span class="badge b-block">auditor</span> <span class="badge b-block">juridico</span> <span class="badge b-block">financeiro</span> — mensagem "Seu papel não pode criar solicitações".</div>
+    <p>Tela de criação de um novo documento a ser aprovado.</p>
+
+    <h4>Campos do formulário</h4>
+    <ul class="fieldlist">
+      <li><b>Tipo de solicitação</b><span class="req">obrigatório</span> — selecionado visualmente entre os tipos cadastrados (Cotação, Compra, Contrato, Locação, Diarista, Outros...).</li>
+      <li><b>Hotel/unidade</b><span class="req">obrigatório</span> — lista apenas os hotéis aos quais você tem acesso.</li>
+      <li><b>Valor total (R$)</b><span class="req">obrigatório</span> — usado para calcular quantas aprovações o documento vai exigir.</li>
+      <li><b>Título</b><span class="req">obrigatório</span></li>
+      <li><b>Centro de custo</b><span class="opt">opcional</span></li>
+      <li><b>Fornecedor/prestador</b><span class="opt">opcional</span></li>
+      <li><b>Descrição/justificativa</b><span class="opt">opcional</span></li>
+      <li><b>Observações internas</b><span class="opt">opcional</span> — vira um comentário interno, não aparece para o solicitante em outras contas.</li>
+      <li><b>Anexos</b><span class="req">obrigatório, mínimo 1 arquivo</span> — PDF, XLS/XLSX, DOC/DOCX, PNG, JPG/JPEG, até ~15&nbsp;MB por arquivo.</li>
+    </ul>
+
+    <h4>Pré-visualização da rota de aprovação</h4>
+    <p style="font-size:13.5px">Assim que hotel, tipo e valor estão preenchidos, a tela mostra automaticamente quantas etapas o documento vai ter e qual papel decide em cada uma — antes mesmo de enviar. Se nenhuma regra cobrir a combinação escolhida, aparece um aviso para contatar o administrador.</p>
+
+    <div class="note ok">
+      <b>💾 Rascunho automático</b>
+      Enquanto você preenche, o formulário é salvo automaticamente no seu navegador. Se você sair da tela sem enviar, ao voltar os campos de texto, hotel, tipo e valor são restaurados — só os arquivos anexados precisam ser selecionados de novo (o navegador não permite recuperar arquivos automaticamente, por segurança).
+    </div>
+    <div class="note">
+      <b>Envio retomável</b>
+      Se o envio for interrompido no meio do upload dos arquivos, ao tentar de novo o sistema reaproveita a solicitação já criada e envia apenas os arquivos que ainda faltam — não duplica nada.
+    </div>
+
+    <p>Botão <b>Enviar solicitação</b>: valida os campos obrigatórios, cria o documento, envia os arquivos, grava a observação interna (se houver) e transiciona o documento para "pendente", notificando o primeiro aprovador da rota.</p>
+  </section>
+
+  <section id="pendentes">
+    <h3><span class="num">4.3</span>Minhas aprovações</h3>
+    <div class="tag-access">👥 Relevante para perfis que aprovam — <span class="badge b-approve">lider_area</span> <span class="badge b-approve">lider_administrativo</span> <span class="badge b-approve">gerente_geral</span> e demais perfis quando indicados numa etapa. É a tela inicial padrão desses três perfis.</div>
+    <p>Lista os documentos que estão, agora, na etapa em que você é o aprovador esperado.</p>
+    <table>
+      <thead><tr><th>Coluna</th><th>O que mostra</th></tr></thead>
+      <tbody>
+        <tr><td>Título / Hotel / Tipo / Valor / Solicitante</td><td>Dados do documento</td></tr>
+        <tr><td>Pendente há</td><td>Tempo decorrido desde que a etapa ficou aguardando você (ex.: "2 dias 4 horas")</td></tr>
+        <tr><td>SLA</td><td>Prazo definido para a etapa, se houver — em vermelho e com ⚠ quando estourado</td></tr>
+      </tbody>
+    </table>
+    <p>Botão <b>Analisar</b> abre o <a href="#documento">detalhe do documento</a>, de onde a decisão é tomada.</p>
+    <div class="note warn"><b>⚠ Aviso de segurança por senha</b> Se sua conta ainda não tem MFA ativado, esta tela mostra um aviso lembrando que suas aprovações estão sendo confirmadas apenas por senha, e sugerindo ativar o MFA em <a href="#admin-security">Parâmetros de segurança</a> (ou pedindo a um admin, se você mesmo não tiver acesso a essa tela).</div>
+  </section>
+
+  <section id="arquivo">
+    <h3><span class="num">4.4</span>Arquivo eletrônico</h3>
+    <div class="tag-access">👥 Acessível por todos os perfis autenticados — resultado sempre respeita o que cada perfil pode ver.</div>
+    <p>Busca e consulta de todos os documentos ao seu alcance, aprovados, pendentes, reprovados ou cancelados.</p>
+
+    <h4>Filtros disponíveis</h4>
+    <ul class="fieldlist">
+      <li>Busca livre (título, descrição, fornecedor)</li>
+      <li>Hotel, Tipo de documento, Status</li>
+      <li>Fornecedor, Valor mínimo / máximo</li>
+      <li>Data de / até</li>
+      <li>Solicitante (busca por nome)</li>
+      <li>Aprovador (busca por nome)</li>
+    </ul>
+
+    <div class="tag-access">📤 Botão <b>Exportar CSV</b> visível apenas para <span class="badge b-admin">super_admin</span> <span class="badge b-admin">admin_corporativo</span> <span class="badge b-admin">admin_hotel</span> <span class="badge b-admin">financeiro</span> <span class="badge b-admin">auditor</span> <span class="badge b-admin">juridico</span>.</div>
+
+    <p>Clique em <b>Abrir</b> em qualquer linha da tabela de resultados para ver o detalhe completo do documento.</p>
+  </section>
+
+  <section id="notificacoes">
+    <h3><span class="num">4.5</span>Notificações</h3>
+    <div class="tag-access">👥 Acessível por todos — cada usuário só vê as próprias notificações.</div>
+    <table>
+      <thead><tr><th>Ícone</th><th>Tipo</th><th>Significado</th></tr></thead>
+      <tbody>
+        <tr><td>⏳</td><td>approval_pending</td><td>Um documento está aguardando sua aprovação</td></tr>
+        <tr><td>🔔</td><td>approval_reminder</td><td>Lembrete de aprovação pendente</td></tr>
+        <tr><td>✅</td><td>approved</td><td>Um documento seu (ou que você acompanha) foi aprovado</td></tr>
+        <tr><td>❌</td><td>rejected</td><td>Um documento foi reprovado</td></tr>
+        <tr><td>⚠️</td><td>sla_overdue</td><td>Uma etapa estourou o prazo (SLA)</td></tr>
+        <tr><td>💬</td><td>comment_received</td><td>Novo comentário em um documento seu</td></tr>
+        <tr><td>✉️</td><td>user_invited</td><td>Convite de acesso enviado/recebido</td></tr>
+      </tbody>
+    </table>
+    <p>Clicar numa notificação marca ela como lida e, se estiver ligada a um documento, abre esse documento direto. O botão <b>Marcar todas como lidas</b> limpa a lista de uma vez.</p>
+  </section>
+
+  <section id="documento">
+    <h3><span class="num">4.6</span>Detalhe do documento</h3>
+    <div class="tag-access">👥 Acessível por todos os perfis com permissão de ver aquele documento específico (veja <a href="#matriz">matriz de acesso</a>) — é onde a aprovação de fato acontece.</div>
+    <p>Tela central do sistema: reúne todas as informações de um documento em 5 abas, mais um painel lateral de ação.</p>
+
+    <h4>Cabeçalho</h4>
+    <p style="font-size:13.5px">Título, status (rascunho/pendente/aprovado/reprovado/cancelado), hotel, tipo, valor, fornecedor, centro de custo e solicitante.</p>
+
+    <h4>Aba Resumo</h4>
+    <p style="font-size:13.5px">Descrição/justificativa e a <b>linha do tempo das aprovações</b>: cada etapa aparece com uma bolinha colorida —</p>
+    <p>
+      <span class="badge b-approve">verde = aprovada</span>
+      <span class="badge b-block">vermelho = reprovada</span>
+      <span class="badge b-warn">amarelo = aguardando decisão agora</span>
+      <span class="badge b-view">cinza = ainda não chegou a vez</span>
+    </p>
+    <p style="font-size:13.5px">Para cada etapa: papel exigido, quem decidiu (ou quem está pendente), data/hora e, se aprovada, o início do hash da evidência.</p>
+
+    <h4>Aba Arquivos</h4>
+    <p style="font-size:13.5px">Lista de todos os anexos, numerados na ordem de envio. Cada arquivo tem botões <b>Visualizar</b> (abre em uma janela de pré-visualização, sem precisar baixar) e <b>Baixar</b>. Havendo mais de um arquivo, o botão <b>👁 Visualizar todos</b> abre todos de uma vez, um abaixo do outro.</p>
+    <ul class="fieldlist">
+      <li><b>PDF</b> — visualizado direto na tela</li>
+      <li><b>PNG / JPG / JPEG</b> — visualizado direto na tela</li>
+      <li><b>XLS / DOC e outros formatos</b> — sem pré-visualização segura no navegador; a tela oferece um link para abrir/baixar em nova aba</li>
+    </ul>
+
+    <h4>Aba Histórico/Auditoria</h4>
+    <p style="font-size:13.5px">Linha do tempo com criação do documento, aprovações e reprovações. Abaixo, a seção <b>Evidências de assinatura</b> mostra apenas as decisões que realmente aconteceram — aprovação, reprovação e emissão de certificado — com autor, papel na época, data/hora, tipo de confirmação de identidade (MFA verificado, senha reconfirmada ou sem reautenticação) e o hash completo daquele evento. Simples visualizações e downloads de arquivo <b>não aparecem aqui</b> — ficam registrados só para fins de auditoria interna.</p>
+    <div class="tag-access">🔒 O bloco <b>Log de auditoria (administrativo)</b>, com as alterações de cadastro feitas por administradores, só aparece para <span class="badge b-admin">admin_corporativo</span> <span class="badge b-admin">financeiro</span> <span class="badge b-admin">auditor</span> <span class="badge b-admin">juridico</span> <span class="badge b-admin">super_admin</span>. Para os demais, aparece um aviso de que essa seção é restrita.</div>
+
+    <h4>Aba Comentários</h4>
+    <p style="font-size:13.5px">Comentários em ordem cronológica, com indicação de quando são "Internos" (não visíveis a quem apenas solicitou o documento). Perfis <span class="badge b-block">auditor</span> e <span class="badge b-block">juridico</span> não podem comentar — só ler.</p>
+
+    <h4>Aba Certificado</h4>
+    <p style="font-size:13.5px">Só aparece quando o documento está <b>totalmente aprovado</b>. Mostra número do certificado, todos os metadados do documento, a lista completa de aprovadores com data, tipo de autenticação e IP de cada aprovação, um QR code e um link de validação. Botões para <b>Imprimir/Salvar PDF</b> e <b>Baixar (.txt)</b>.</p>
+
+    <h4>Painel lateral</h4>
+    <div class="grid2">
+      <div class="card">
+        <h4 style="margin-top:0">"Sua aprovação é necessária"</h4>
+        <p style="font-size:13px;margin:0">Só aparece para quem pode decidir a etapa atual agora. Mostra a etapa, o papel exigido, o SLA (se houver) e os botões <b>✓ Aprovar</b> / <b>✕ Reprovar</b>.</p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top:0">"Status"</h4>
+        <p style="font-size:13px;margin:0">Se o documento já não está mais pendente, mostra o resultado final. Se está pendente, mostra o próximo aprovador esperado, há quanto tempo está parado e o SLA.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h4 style="margin-top:0">"Ações administrativas" <span style="font-weight:400;font-size:12px;color:var(--muted)">(quando aplicável)</span></h4>
+      <ul class="fieldlist" style="margin:0">
+        <li><b>Cancelar solicitação</b> — disponível para quem criou o documento (enquanto rascunho ou pendente) ou para administradores; pede o motivo do cancelamento.</li>
+        <li><b>Reenviar notificação</b> — disponível para administradores em documentos pendentes; reenvia o aviso ao(s) aprovador(es) esperado(s) e informa quantas pessoas foram notificadas.</li>
+      </ul>
+    </div>
+
+    <h4>Como aprovar ou reprovar</h4>
+    <ol class="steps">
+      <li><b>Clique em Aprovar ou Reprovar</b> no painel lateral.</li>
+      <li><b>Escreva um comentário</b> — opcional ao aprovar, <u>obrigatório</u> ao reprovar (é o motivo da reprovação).</li>
+      <li><b>Confirme sua identidade</b> — com o código do app autenticador (se sua conta tem MFA) ou digitando sua senha novamente (se não tem).</li>
+      <li><b>Pronto</b> — o sistema grava a evidência, avança para a próxima etapa (ou finaliza o documento, gerando certificado se foi a última) e notifica quem precisa saber.</li>
+    </ol>
+    <div class="note danger">
+      <b>🔒 Regra de segregação de funções</b>
+      O mesmo usuário nunca pode aprovar/reprovar duas etapas do mesmo documento — mesmo que ele tenha Papel Global e Papel no Hotel que, separadamente, batam com duas etapas diferentes. Cada nível de aprovação exige uma pessoa diferente da(s) anterior(es).
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <h2 style="border:none;margin-bottom:4px">Menu de administração <span style="font-weight:400;font-size:15px;color:var(--muted)">— visível apenas para perfis administrativos</span></h2>
+  <p class="lede" style="margin-bottom:10px">
+    <span class="badge b-admin">super_admin</span>
+    <span class="badge b-admin">admin_corporativo</span>
+    <span class="badge b-admin">admin_hotel</span>
+  </p>
+  <p class="lede" style="margin-bottom:36px">Dashboard Admin · Empresas · Hotéis · Usuários · Vínculo usuário × hotel · Perfis e permissões · Tipos de aprovação · Regras de alçada · Parâmetros de segurança · Logs de auditoria</p>
+
+  <section id="admin-dashboard">
+    <h3><span class="num">5.1</span>Dashboard Admin</h3>
+    <p>Painel de entrada da administração, com contagem de hotéis cadastrados, usuários ativos e regras de alçada ativas — um raio-x rápido da configuração atual.</p>
+  </section>
+
+  <section id="admin-companies">
+    <h3><span class="num">5.2</span>Empresas</h3>
+    <div class="tag-access">✏️ Criar: <span class="badge b-admin">super_admin</span>. Editar: <span class="badge b-admin">super_admin</span> <span class="badge b-admin">admin_corporativo</span> (só a própria empresa).</div>
+    <p>Cadastro das empresas que usam o sistema (multiempresa). Campos: <b>Nome</b>, <b>Slug</b> (identificador sem espaços) e status <b>Ativa</b>.</p>
+  </section>
+
+  <section id="admin-hotels">
+    <h3><span class="num">5.3</span>Hotéis</h3>
+    <div class="tag-access">✏️ Criar/editar: <span class="badge b-admin">super_admin</span> <span class="badge b-admin">admin_corporativo</span>. <span class="badge b-view">admin_hotel</span> só visualiza os que tem acesso.</div>
+    <p>Cadastro das unidades (hotéis). Campos: <b>Nome</b>, <b>Código</b> (até 10 caracteres, maiúsculo) e status <b>Ativo</b>.</p>
+  </section>
+
+  <section id="admin-users">
+    <h3><span class="num">5.4</span>Usuários</h3>
+    <div class="tag-access">✏️ Gerenciar: <span class="badge b-admin">super_admin</span> <span class="badge b-admin">admin_corporativo</span>.</div>
+
+    <h4>+ Convidar usuário</h4>
+    <p style="font-size:13.5px">Envia um e-mail de convite com link para a pessoa definir a própria senha. Campos: <b>Nome completo</b>, <b>E-mail</b>, <b>Papel global</b>.</p>
+
+    <h4>+ Criar usuário de teste</h4>
+    <p style="font-size:13.5px">Cria uma conta já com senha definida por quem está cadastrando, sem enviar e-mail — útil para testes internos. Campos: Nome, E-mail, Senha, Papel global, Exigir MFA, Ativo. O papel <span class="badge b-block">super_admin</span> não pode ser atribuído por esse caminho.</p>
+
+    <h4>Editar usuário</h4>
+    <p style="font-size:13.5px">Nome, Papel global, status Ativo, checkbox Exigir MFA.</p>
+
+    <h4>Resetar MFA</h4>
+    <p style="font-size:13.5px">Remove o segundo fator configurado da pessoa — ela vai precisar configurar um novo app autenticador no próximo login. Use quando alguém perde o celular/app autenticador.</p>
+  </section>
+
+  <section id="admin-hotel-users">
+    <h3><span class="num">5.5</span>Vínculo usuário × hotel</h3>
+    <div class="tag-access">✏️ <span class="badge b-admin">super_admin</span> <span class="badge b-admin">admin_corporativo</span> gerenciam todos os vínculos; <span class="badge b-admin">admin_hotel</span> só os dos hotéis sob sua responsabilidade.</div>
+    <p>Define, para cada hotel, quais usuários têm acesso e com qual <b>Papel no Hotel</b> — é aqui que se decide, por exemplo, quem é o Líder da área daquele hotel específico, além do papel global que a pessoa já tem.</p>
+    <ul class="fieldlist">
+      <li><b>Usuário</b> — selecionado entre os cadastrados</li>
+      <li><b>Hotel</b> — entre os hotéis administráveis por quem está cadastrando</li>
+      <li><b>Papel no hotel</b> — qualquer um dos 10 papéis</li>
+      <li><b>Ativo</b></li>
+    </ul>
+    <p style="font-size:13.5px">Botão <b>Remover</b> desfaz o vínculo (pede confirmação, mostrando o nome do usuário e do hotel).</p>
+  </section>
+
+  <section id="admin-roles">
+    <h3><span class="num">5.6</span>Perfis e permissões</h3>
+    <div class="tag-access">👁 Consulta (somente leitura), acessível pelos três perfis administrativos.</div>
+    <p>Tela de referência com a descrição oficial de cada um dos 10 papéis do sistema — a mesma explicação da <a href="#perfis">seção 2</a> deste manual, sempre atualizada dentro do próprio sistema.</p>
+  </section>
+
+  <section id="admin-types">
+    <h3><span class="num">5.7</span>Tipos de aprovação</h3>
+    <div class="tag-access">✏️ Criar/editar: <span class="badge b-admin">super_admin</span> <span class="badge b-admin">admin_corporativo</span>.</div>
+    <p>Cadastro das categorias de documento (Cotação, Compra, Contrato, Locação, Diarista, Outros...). Campos: <b>Código</b> (sem espaços), <b>Nome</b>, <b>Descrição</b>, status <b>Ativo</b>.</p>
+  </section>
+
+  <section id="admin-rules">
+    <h3><span class="num">5.8</span>Regras de alçada</h3>
+    <div class="tag-access">✏️ <span class="badge b-admin">super_admin</span> <span class="badge b-admin">admin_corporativo</span> <span class="badge b-admin">admin_hotel</span> (este último só nas regras específicas dos seus hotéis).</div>
+    <p>É aqui que se define <b>quantas aprovações</b> um documento vai precisar e <b>quem</b> aprova em cada nível — o coração do fluxo do sistema.</p>
+    <ul class="fieldlist">
+      <li><b>Unidade</b> — um hotel específico ou "Todas as unidades"</li>
+      <li><b>Tipo de documento</b> — um tipo específico ou "Todos os tipos"</li>
+      <li><b>Valor mínimo</b><span class="req">obrigatório</span> e <b>Valor máximo</b><span class="opt">opcional, vazio = sem limite</span></li>
+      <li><b>Ativa</b></li>
+    </ul>
+    <h4>Botão "Etapas" — configurar os níveis de aprovação da regra</h4>
+    <p style="font-size:13.5px">Cada regra tem uma lista numerada de etapas (1, 2, 3...). Para cada uma: <b>Papel exigido</b> e <b>SLA em horas</b> (opcional — prazo esperado para decisão). As etapas são avaliadas em ordem: a etapa 2 só libera depois que a etapa 1 for aprovada.</p>
+    <div class="note">
+      <b>Exemplo real em produção</b>
+      Uma regra "Todas as unidades", tipo "Todos os tipos", de R$ 0,00 a R$ 3.000,00, com etapas <span class="pill-role">lider_area</span> (nível 1) e <span class="pill-role">lider_administrativo</span> (nível 2) — ou seja, qualquer documento nessa faixa de valor precisa das duas aprovações, em sequência, por pessoas diferentes.
+    </div>
+  </section>
+
+  <section id="admin-security">
+    <h3><span class="num">5.9</span>Parâmetros de segurança</h3>
+    <div class="tag-access">✏️ <span class="badge b-admin">super_admin</span> <span class="badge b-admin">admin_corporativo</span>.</div>
+
+    <h4>Exigir MFA por papel</h4>
+    <p style="font-size:13.5px">Selecione um papel e escolha "Exigir MFA" ou "Dispensar MFA" — o botão <b>Aplicar ao papel</b> atualiza de uma vez todos os usuários que têm aquele papel global.</p>
+
+    <h4>Política atual (informativo)</h4>
+    <ul class="fieldlist">
+      <li><b>🔑 Senha mínima:</b> 8 caracteres, com maiúscula, minúscula e número</li>
+      <li><b>🚦 Rate limit:</b> 30 tentativas de login/cadastro a cada 5 minutos por IP; 150 renovações de sessão por IP a cada 5 minutos</li>
+      <li><b>⏱️ Sessão:</b> idade máxima de 12h, verificada no momento de cada aprovação</li>
+      <li><b>🔐 MFA:</b> recomendado para todos que aprovam documentos; pode ser ativado em massa por papel aqui, ou individualmente na tela de <a href="#admin-users">Usuários</a></li>
+    </ul>
+  </section>
+
+  <section id="admin-audit">
+    <h3><span class="num">5.10</span>Logs de auditoria</h3>
+    <div class="tag-access">👁 <span class="badge b-admin">admin_corporativo</span> <span class="badge b-admin">super_admin</span>.</div>
+    <p>Histórico de tudo o que foi criado, alterado ou excluído nas telas administrativas (empresas, hotéis, usuários, vínculos, tipos, regras). Filtros por tabela e por tipo de ação (inserção, alteração, exclusão).</p>
+    <p style="font-size:13.5px">O botão <b>Ver detalhes</b> de cada linha mostra o estado "Antes" e "Depois" da alteração, em formato bruto, para conferência exata do que mudou.</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <section id="fluxo">
+    <h2><span class="num">6.</span>Fluxo de aprovação, do início ao fim</h2>
+    <ol class="steps">
+      <li><b>Solicitante preenche e envia</b> — hotel, tipo e valor definem automaticamente, via <a href="#admin-rules">regra de alçada</a> ativa, quantas etapas o documento terá.</li>
+      <li><b>Notificação ao primeiro aprovador</b> — quem tem o papel exigido na etapa 1 (global ou no hotel) recebe uma notificação e vê o documento em <a href="#pendentes">Minhas aprovações</a>.</li>
+      <li><b>Aprovador decide</b> — abre o documento, confere resumo, arquivos e comentários, e clica em Aprovar ou Reprovar, confirmando a identidade por MFA ou senha.</li>
+      <li><b>Reprovação encerra o fluxo</b> — se qualquer etapa for reprovada, o documento vira "Reprovado" e todas as etapas seguintes são canceladas.</li>
+      <li><b>Aprovação avança para a próxima etapa</b> — se houver etapa seguinte, o novo aprovador é notificado; a regra de segregação de funções impede que quem já aprovou uma etapa anterior aprove esta.</li>
+      <li><b>Última etapa aprovada = documento aprovado</b> — o sistema gera automaticamente o número do certificado e a aba <a href="#documento">Certificado</a> fica disponível, com toda a trilha de aprovadores, datas e hashes.</li>
+    </ol>
+  </section>
+
+  <section id="seguranca">
+    <h2><span class="num">7.</span>Segurança e evidências</h2>
+
+    <div class="grid2">
+      <div class="card">
+        <h4>Confirmação de identidade ao decidir</h4>
+        <p style="font-size:13.5px;margin:0">Toda aprovação/reprovação exige reconfirmar quem você é: com o código do app autenticador (contas com MFA obrigatório) ou digitando a senha novamente (contas sem MFA). Essa informação fica gravada na evidência.</p>
+      </div>
+      <div class="card">
+        <h4>Evidência em cadeia (hash)</h4>
+        <p style="font-size:13.5px;margin:0">Cada decisão gera um registro com um hash calculado a partir do hash do registro anterior — como um elo de corrente. Alterar qualquer evidência anterior quebraria a cadeia inteira, o que torna qualquer adulteração detectável.</p>
+      </div>
+    </div>
+
+    <div class="note danger">
+      <b>Limitações jurídicas da assinatura interna</b>
+      A confirmação de identidade e o hash encadeado deste sistema são uma <b>evidência eletrônica interna</b>, útil para controle e auditoria da Estancorp — mas <u>não</u> equivalem a uma assinatura digital com certificado ICP-Brasil, nem têm o mesmo peso jurídico de uma assinatura eletrônica qualificada perante terceiros. Para contratos que exigem validade jurídica plena com a outra parte, use uma solução de assinatura qualificada (ex.: futura integração com Authentique ou Gov.br/ICP-Brasil) fora ou em conjunto com o AprovaHub.
+    </div>
+
+    <h4>Segregação de funções</h4>
+    <p style="font-size:13.5px">Nenhum usuário aprova duas etapas do mesmo documento — mesmo que acumule Papel Global e Papel no Hotel diferentes que, isoladamente, o qualificariam para as duas. Isso garante que cada nível de aprovação represente o julgamento de uma pessoa diferente.</p>
+
+    <h4>O que fica registrado e quem vê</h4>
+    <table>
+      <thead><tr><th>Registro</th><th>Onde aparece</th><th>Quem vê</th></tr></thead>
+      <tbody>
+        <tr><td>Aprovação / reprovação / certificado emitido</td><td>Aba Histórico → "Evidências de assinatura"</td><td>Todos que veem o documento</td></tr>
+        <tr><td>Visualização / download de arquivo</td><td>Gravado no banco, não exibido nessa seção</td><td>Uso interno de auditoria</td></tr>
+        <tr><td>Alterações administrativas (cadastros)</td><td>Aba Histórico → "Log de auditoria" e tela <a href="#admin-audit">Logs de auditoria</a></td><td>admin_corporativo, financeiro, auditor, juridico, super_admin</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="matriz">
+    <h2><span class="num">8.</span>Matriz de acesso por perfil</h2>
+    <p class="lede">Visão rápida de quem acessa cada tela. "Sim" indica que a tela aparece no menu daquele perfil — o conteúdo dentro dela ainda pode ser filtrado conforme o documento/hotel/empresa (veja cada seção para o detalhe).</p>
+    <div class="table-scroll">
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th>Tela</th>
+          <th>super_admin</th><th>admin_corp.</th><th>admin_hotel</th>
+          <th>solicitante</th><th>lider_area</th><th>lider_admin.</th>
+          <th>gerente_geral</th><th>financeiro</th><th>auditor</th><th>juridico</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Dashboard</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Nova solicitação</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Minhas aprovações</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Arquivo eletrônico</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Exportar CSV</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Notificações</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Comentar em documento</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Log de auditoria (aba do documento)</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td colspan="11" style="background:var(--brass-soft);font-weight:700;color:#7A5C22">Menu de administração</td></tr>
+        <tr><td>Dashboard Admin</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Empresas</td><td class="yes">✓ cria</td><td class="yes">edita</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Hotéis</td><td class="yes">✓ cria</td><td class="yes">cria</td><td class="yes">vê</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Usuários</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Vínculo usuário × hotel</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">seus hotéis</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Perfis e permissões</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Tipos de aprovação</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Regras de alçada</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">seus hotéis</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Parâmetros de segurança</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Logs de auditoria (admin)</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section id="faq">
+    <h2><span class="num">9.</span>Perguntas frequentes</h2>
+
+    <h4>Aprovei um documento, mas o botão de aprovar continua aparecendo pra outra pessoa. Está certo?</h4>
+    <p style="font-size:13.5px">Sim, se o documento tiver mais de uma etapa (ex.: Líder da área + Líder administrativo). O status só muda para "Aprovado" quando a <b>última</b> etapa configurada na regra de alçada for decidida. Confira o número de etapas na tela <a href="#admin-rules">Regras de alçada</a>.</p>
+
+    <h4>Por que não consigo aprovar a segunda etapa de um documento que eu mesmo aprovei na primeira etapa?</h4>
+    <p style="font-size:13.5px">É a regra de <a href="#seguranca">segregação de funções</a>: o sistema nunca permite que a mesma pessoa decida duas etapas do mesmo documento, mesmo que ela tenha papéis (global e no hotel) que teoricamente qualificariam para as duas. Peça para outra pessoa com o papel exigido decidir a próxima etapa.</p>
+
+    <h4>Perdi meu app autenticador (MFA). E agora?</h4>
+    <p style="font-size:13.5px">Peça a um administrador (<span class="pill-role">super_admin</span> ou <span class="pill-role">admin_corporativo</span>) para usar o botão <b>Resetar MFA</b> na tela <a href="#admin-users">Usuários</a>. No próximo login, você vai configurar um novo app.</p>
+
+    <h4>Por que não vejo um documento que sei que existe?</h4>
+    <p style="font-size:13.5px">O acesso é sempre restrito por empresa, hotel e papel. Se você é <span class="pill-role">solicitante</span>, só vê o que você mesmo criou. Se é líder/gerente, só vê o que está (ou já esteve) no seu fluxo de aprovação, ou dos hotéis a que tem acesso. Confira a <a href="#matriz">matriz de acesso</a> e, se achar que deveria ter acesso, peça a um administrador para conferir seu vínculo em <a href="#admin-hotel-users">Vínculo usuário × hotel</a>.</p>
+
+    <h4>Posso editar um documento depois de enviado?</h4>
+    <p style="font-size:13.5px">Não. Hotel, tipo e valor ficam travados assim que o envio começa, justamente para não alterar a rota de aprovação já calculada. Se precisar mudar algo relevante, cancele a solicitação (se ainda estiver pendente) e crie uma nova.</p>
+
+    <h4>O que acontece se eu sair da tela "Nova solicitação" no meio do preenchimento?</h4>
+    <p style="font-size:13.5px">Nada é perdido: os campos de texto ficam salvos automaticamente no seu navegador e são restaurados na próxima vez que você abrir a tela — só os arquivos anexados precisam ser selecionados novamente.</p>
+  </section>
+
+  <footer>
+    Manual de Operação — AprovaHub Estancorp · gerado a partir da versão em produção em 07/07/2026 · uso interno
+  </footer>
+
+</main>
+</div>
+</body>
+</html>
