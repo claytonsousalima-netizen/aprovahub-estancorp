@@ -27,6 +27,14 @@ const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 // "iat" sempre fresco e o bloqueio nunca disparia.
 const MAX_SESSION_AGE_SECONDS = 12 * 60 * 60;
 
+// Chamada direto do navegador (supabase.functions.invoke) — sem esses
+// cabeçalhos, o preflight OPTIONS falha e o browser bloqueia a requisição
+// antes dela chegar aqui, mesmo com o resto da função correto.
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 async function getSessionAgeSeconds(
   admin: ReturnType<typeof createClient>,
   claims: Record<string, unknown>,
@@ -43,7 +51,7 @@ async function getSessionAgeSeconds(
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
   });
 }
 
@@ -60,6 +68,7 @@ function decodeJwtPayload(token: string): Record<string, unknown> {
 }
 
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'Método não permitido.' }, 405);
 
   try {
