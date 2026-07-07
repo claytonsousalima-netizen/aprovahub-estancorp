@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Validar certificado · AprovaHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="src/styles/main.css">
+<style>
+  body{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:48px 20px}
+  .val-wrap{width:100%;max-width:560px}
+  .val-header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+  .val-form{display:flex;gap:8px;margin-bottom:24px}
+  .val-form input{flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
+</style>
+</head>
+<body>
+<div class="val-wrap">
+  <div class="val-header">
+    <div class="brand-mark">A</div>
+    <div><b style="font-family:'Fraunces',serif;font-size:19px">AprovaHub</b><br><small style="letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Validação de certificado</small></div>
+  </div>
+
+  <div class="val-form">
+    <input type="text" id="fCert" placeholder="Número do certificado (ex.: AH-2026-000123)">
+    <button class="btn btn-brass" id="btnCheck">Validar</button>
+  </div>
+
+  <div id="result"></div>
+</div>
+
+<script type="module">
+  import { supabase } from './src/config/supabase.js';
+
+  const ROLE_LABEL = {
+    super_admin: 'Super admin', admin_corporativo: 'Admin corporativo', admin_hotel: 'Admin hotel',
+    solicitante: 'Solicitante', lider_area: 'Líder da área', lider_administrativo: 'Líder administrativo',
+    gerente_geral: 'Gerente geral', financeiro: 'Financeiro', auditor: 'Auditor', juridico: 'Jurídico',
+  };
+
+  const params = new URLSearchParams(location.search);
+  const initialCert = params.get('certificate') || '';
+  const expectedHash = params.get('hash') || '';
+
+  const fCert = document.getElementById('fCert');
+  const btnCheck = document.getElementById('btnCheck');
+  const resultBox = document.getElementById('result');
+
+  fCert.value = initialCert;
+
+  async function validate() {
+    const cert = fCert.value.trim();
+    if (!cert) return;
+
+    resultBox.innerHTML = '<div class="empty">Verificando…</div>';
+    btnCheck.disabled = true;
+
+    const { data, error } = await supabase.rpc('fn_validate_certificate', { p_certificate_number: cert });
+    btnCheck.disabled = false;
+
+    if (error) {
+      resultBox.innerHTML = `<div class="card empty" style="padding:40px"><b>Erro ao validar</b><p>${error.message}</p></div>`;
+      return;
+    }
+
+    if (!data) {
+      resultBox.innerHTML = `
+        <div class="card empty" style="padding:40px">
+          <b>Certificado não encontrado</b>
+          <p>Não existe um certificado aprovado com este número. Confira se foi digitado corretamente.</p>
+        </div>`;
+      return;
+    }
+
+    const steps = data.steps || [];
+    let hashBanner = '';
+    if (expectedHash) {
+      const matches = expectedHash.toLowerCase() === (data.final_hash || '').toLowerCase();
+      hashBanner = matches
+        ? '<div class="notice" style="background:var(--ok-soft);color:var(--ok);border-color:var(--ok)">✓ O hash informado confere com o hash final registrado.</div>'
+        : '<div class="notice" style="background:var(--danger-soft);color:var(--danger);border-color:var(--danger)">✗ O hash informado NÃO confere com o hash final registrado.</div>';
+    }
+
+    resultBox.innerHTML = `
+      <div class="stamp">✓ Certificado válido</div>
+      <div class="cert" style="margin-top:14px">
+        <div class="meta-grid" style="grid-template-columns:repeat(2,1fr)">
+          <div class="meta"><div class="k">Empresa</div><div class="v">${data.company_name}</div></div>
+          <div class="meta"><div class="k">Nº do certificado</div><div class="v mono">${data.certificate_number}</div></div>
+          <div class="meta"><div class="k">Documento</div><div class="v">${data.document_title}</div></div>
+          <div class="meta"><div class="k">Tipo</div><div class="v">${data.approval_type_name}</div></div>
+          <div class="meta"><div class="k">Hotel</div><div class="v">${data.hotel_name}</div></div>
+          <div class="meta"><div class="k">Status</div><div class="v">Aprovado</div></div>
+          <div class="meta"><div class="k">Criado em</div><div class="v">${new Date(data.created_at).toLocaleString('pt-BR')}</div></div>
+          <div class="meta"><div class="k">Aprovação final</div><div class="v">${new Date(data.final_decision_at).toLocaleString('pt-BR')}</div></div>
+        </div>
+        <div class="meta" style="padding:0 18px 14px"><div class="k">Hash final</div><div class="mono" style="font-size:10.5px">${data.final_hash || '—'}</div></div>
+      </div>
+
+      ${hashBanner}
+
+      <h3 style="margin:18px 0 8px">Aprovadores (em ordem)</h3>
+      ${steps
+        .map(
+          (s) => `
+        <div class="rule-row">
+          <div class="rn">${s.step_order}</div>
+          <div>
+            <b>${s.approver_name || '—'} — ${ROLE_LABEL[s.role_required] || s.role_required}</b>
+            <span>${new Date(s.approved_at).toLocaleString('pt-BR')} · ${s.mfa_verified ? 'MFA verificado' : s.auth_method === 'password_reconfirmation' ? 'Senha reconfirmada' : 'reautenticação registrada'}</span>
+          </div>
+        </div>`
+        )
+        .join('')}
+
+      <div class="notice" style="margin-top:18px">
+        Este certificado comprova a trilha eletrônica de aprovação interna deste documento, com registro de autenticação, evidências técnicas e integridade dos arquivos anexos.
+      </div>
+    `;
+  }
+
+  btnCheck.addEventListener('click', validate);
+  fCert.addEventListener('keydown', (e) => { if (e.key === 'Enter') validate(); });
+
+  if (initialCert) validate();
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+# Segredos e configuração local — nunca commitar
+.env
+.env.local
+.env.*.local
+
+# Ferramentas locais (Claude Code) — configuração de máquina, não do projeto
+.claude/
+
+# Artefatos de sistema/editor
+.DS_Store
+Thumbs.db
+*.tmp
+*.tmp.*
+*.log
+
+# Caso alguém adicione tooling de build no futuro
+node_modules/
+dist/
+build/
+.vscode/
