@@ -8,6 +8,7 @@ import { activeStepInfo, isOverdue, ageLabel } from '../services/documents.servi
 import { fetchDocumentDetail, fetchAuditLogs, addComment, downloadDocumentFile, getPreviewFileUrl, isPreviewable } from '../services/document-detail.service.js';
 import { confirmIdentityForSignature, processApproval, cancelDocument, resendApprovalNotification, canUserApprove } from '../services/approvals.service.js';
 import { buildValidationUrl, generateQrDataUrl } from '../services/certificate.service.js';
+import { buildProcessPdf, processPdfFileName } from '../services/process-export.service.js';
 
 const fmt = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const STATUS_LABEL = { draft: 'Rascunho', pending: 'Pendente', approved: 'Aprovado', rejected: 'Reprovado', cancelled: 'Cancelado', expired: 'Expirado' };
@@ -63,7 +64,11 @@ export function renderDocumento(documentId) {
     content.innerHTML = `
       <div class="topbar">
         <div><h1>${doc.title}</h1><div class="sub">${doc.hotels?.name || ''} · ${doc.approval_types?.name || ''} · Solicitado por ${doc.creator?.full_name || ''}</div></div>
-        <button class="btn btn-ghost" id="btnBack">← Voltar</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost" id="btnViewProcess">👁 Visualizar processo</button>
+          <button class="btn btn-brass" id="btnDownloadProcess">⬇ Baixar processo (PDF)</button>
+          <button class="btn btn-ghost" id="btnBack">← Voltar</button>
+        </div>
       </div>
 
       <div class="doc-layout">
@@ -379,6 +384,9 @@ export function renderDocumento(documentId) {
   function wireEvents() {
     content.querySelector('#btnBack').addEventListener('click', () => history.back());
 
+    content.querySelector('#btnViewProcess').addEventListener('click', (e) => handleExportProcess('view', e.currentTarget));
+    content.querySelector('#btnDownloadProcess').addEventListener('click', (e) => handleExportProcess('download', e.currentTarget));
+
     content.querySelectorAll('.tab').forEach((btn) => {
       btn.addEventListener('click', () => {
         state.activeTab = btn.dataset.tab;
@@ -577,6 +585,32 @@ export function renderDocumento(documentId) {
       toast(`✅ Notificação reenviada para ${count} pessoa(s)`);
     } catch (err) {
       toast(`⚠ ${err.message}`);
+    }
+  }
+
+  async function handleExportProcess(mode, triggerBtn) {
+    const btnView = content.querySelector('#btnViewProcess');
+    const btnDownload = content.querySelector('#btnDownloadProcess');
+    const originalLabel = triggerBtn.textContent;
+    [btnView, btnDownload].forEach((b) => b && (b.disabled = true));
+    triggerBtn.textContent = 'Gerando PDF…';
+    try {
+      const blob = await buildProcessPdf(state.doc, state.auditLogs, { userId: profile?.id });
+      const url = URL.createObjectURL(blob);
+      if (mode === 'view') {
+        window.open(url, '_blank', 'noopener');
+      } else {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = processPdfFileName(state.doc);
+        a.click();
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      toast(`⚠ Não foi possível gerar o PDF do processo: ${err.message}`);
+    } finally {
+      [btnView, btnDownload].forEach((b) => b && (b.disabled = false));
+      triggerBtn.textContent = originalLabel;
     }
   }
 
