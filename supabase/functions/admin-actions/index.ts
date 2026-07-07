@@ -46,21 +46,14 @@ Deno.serve(async (req) => {
     // Cliente com service_role para as operações privilegiadas de fato.
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    const { data: callerProfile, error: profileError } = await admin
+    const { data: callerProfile } = await admin
       .from('profiles')
       .select('role_global, company_id')
       .eq('id', caller.id)
       .single();
 
     if (!callerProfile || !ADMIN_ROLES.includes(callerProfile.role_global)) {
-      // DIAGNÓSTICO TEMPORÁRIO — remover depois de identificar a causa do 403.
-      return json(
-        {
-          error: 'Sem permissão para esta ação.',
-          debug: { callerId: caller.id, profileError: profileError?.message || null, callerProfile: callerProfile || null },
-        },
-        403
-      );
+      return json({ error: 'Sem permissão para esta ação.' }, 403);
     }
 
     const body = await req.json();
