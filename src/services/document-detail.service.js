@@ -42,13 +42,14 @@ export async function addComment(documentId, userId, comment) {
 }
 
 const SIGNED_URL_EXPIRES_IN = 60; // segundos — só o suficiente pra completar o download
+const PREVIEW_URL_EXPIRES_IN = 600; // segundos — dá tempo de ler o documento na tela
 
 // createSignedUrl() já passa pela RLS de storage.objects com o token de
 // quem chamou: só quem enxerga o documento (mesma regra de sempre)
 // consegue gerar a URL assinada. Nunca expomos os buckets como públicos
 // nem fazemos download direto sem essa checagem.
-export async function getSignedFileUrl(file) {
-  const { data, error } = await supabase.storage.from(file.storage_bucket).createSignedUrl(file.storage_path, SIGNED_URL_EXPIRES_IN);
+export async function getSignedFileUrl(file, expiresIn = SIGNED_URL_EXPIRES_IN) {
+  const { data, error } = await supabase.storage.from(file.storage_bucket).createSignedUrl(file.storage_path, expiresIn);
   if (error) throw new Error(error.message);
   return data.signedUrl;
 }
@@ -81,4 +82,25 @@ export async function downloadDocumentFile(file, { documentId, userId } = {}) {
   a.download = file.original_filename;
   a.rel = 'noopener';
   a.click();
+}
+
+const PREVIEWABLE_MIME_TYPES = new Set(['application/pdf', 'image/png', 'image/jpeg']);
+
+export function isPreviewable(file) {
+  return PREVIEWABLE_MIME_TYPES.has(file.mime_type);
+}
+
+// URL de vida mais longa que a de download, só pra exibir na tela (iframe/img).
+export async function getPreviewFileUrl(file, { documentId, userId } = {}) {
+  const signedUrl = await getSignedFileUrl(file, PREVIEW_URL_EXPIRES_IN);
+
+  if (documentId && userId) {
+    try {
+      await recordFileAccessEvidence({ documentId, userId, action: 'view' });
+    } catch {
+      // Não bloqueia a visualização por causa da evidência — só registra quando dá.
+    }
+  }
+
+  return signedUrl;
 }

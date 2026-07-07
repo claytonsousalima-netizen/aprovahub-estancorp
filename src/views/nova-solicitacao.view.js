@@ -18,6 +18,40 @@ import {
 
 const BLOCKED_ROLES = ['auditor', 'juridico', 'financeiro'];
 
+// Só os campos de texto/seleção — os arquivos em si (File objects) não dá
+// pra guardar no localStorage nem repor num <input type="file"> depois
+// (o navegador bloqueia isso por segurança), então o rascunho cobre o que
+// mais dói perder: o texto já digitado. Chave por usuário pra não vazar
+// rascunho de uma conta pra outra num computador compartilhado.
+function draftKey(profile) {
+  return `aprovahub_draft_nova_solicitacao_${profile.id}`;
+}
+
+function saveDraft(profile, data) {
+  try {
+    localStorage.setItem(draftKey(profile), JSON.stringify(data));
+  } catch {
+    // localStorage indisponível (modo privado, quota etc.) — só não salva.
+  }
+}
+
+function loadDraft(profile) {
+  try {
+    const raw = localStorage.getItem(draftKey(profile));
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearDraft(profile) {
+  try {
+    localStorage.removeItem(draftKey(profile));
+  } catch {
+    // ignora
+  }
+}
+
 export function renderNovaSolicitacao() {
   const profile = getProfile();
 
@@ -37,6 +71,10 @@ export function renderNovaSolicitacao() {
   content.innerHTML = `
     <div class="topbar">
       <div><h1>Nova solicitação</h1><div class="sub">Envie um documento para o fluxo de aprovação</div></div>
+    </div>
+
+    <div class="notice" id="draftNotice" style="display:none">
+      📝 Rascunho restaurado do preenchimento anterior. <a href="#" id="btnDiscardDraft">Descartar e começar do zero</a>.
     </div>
 
     <div class="card" style="padding:20px;margin-bottom:16px">
@@ -118,6 +156,42 @@ export function renderNovaSolicitacao() {
   const routePreviewEl = content.querySelector('#routePreview');
   const errorBox = content.querySelector('#formError');
   const btnSubmit = content.querySelector('#btnSubmit');
+  const draftNotice = content.querySelector('#draftNotice');
+  const titleInput = content.querySelector('#fTitle');
+  const costCenterInput = content.querySelector('#fCostCenter');
+  const supplierInput = content.querySelector('#fSupplier');
+  const descriptionInput = content.querySelector('#fDescription');
+  const internalNotesInput = content.querySelector('#fInternalNotes');
+
+  function persistDraft() {
+    // Nunca salva depois que o envio já começou — nesse ponto o rascunho
+    // em si já virou um documento real no banco (state.draftId).
+    if (state.draftId) return;
+    saveDraft(profile, {
+      title: titleInput.value,
+      costCenter: costCenterInput.value,
+      supplier: supplierInput.value,
+      description: descriptionInput.value,
+      internalNotes: internalNotesInput.value,
+      amount: amountInput.value,
+      hotelId: hotelSelect.value,
+      typeId: state.selectedTypeId,
+    });
+  }
+
+  [titleInput, costCenterInput, supplierInput, descriptionInput, internalNotesInput].forEach((el) => {
+    el.addEventListener('input', persistDraft);
+  });
+
+  content.querySelector('#btnDiscardDraft').addEventListener('click', (e) => {
+    e.preventDefault();
+    clearDraft(profile);
+    [titleInput, costCenterInput, supplierInput, descriptionInput, internalNotesInput, amountInput].forEach((el) => (el.value = ''));
+    hotelSelect.value = '';
+    selectType(null);
+    draftNotice.style.display = 'none';
+    toast('🗑 Rascunho descartado');
+  });
 
   content.querySelector('#btnPickFiles').addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', () => {
@@ -138,8 +212,14 @@ export function renderNovaSolicitacao() {
     renderFileList();
   });
 
-  hotelSelect.addEventListener('change', refreshRoutePreview);
-  amountInput.addEventListener('input', refreshRoutePreview);
+  hotelSelect.addEventListener('change', () => {
+    refreshRoutePreview();
+    persistDraft();
+  });
+  amountInput.addEventListener('input', () => {
+    refreshRoutePreview();
+    persistDraft();
+  });
 
   function renderFileList() {
     if (!state.files.length) {
@@ -208,6 +288,7 @@ export function renderNovaSolicitacao() {
       el.classList.toggle('sel', el.dataset.id === typeId);
     });
     refreshRoutePreview();
+    persistDraft();
   }
 
   async function loadOptions() {
@@ -231,9 +312,33 @@ export function renderNovaSolicitacao() {
       hotelSelect.innerHTML = hotels.length
         ? `<option value="">Selecione…</option>${hotels.map((h) => `<option value="${h.id}">${h.name} (${h.code})</option>`).join('')}`
         : '<option value="">Nenhum hotel disponível</option>';
+
+      applyDraftAfterOptionsLoaded();
     } catch (err) {
       toast(`⚠ ${err.message}`);
     }
+  }
+
+  // Campos de texto/valor não dependem de tipos/hotéis carregados, então
+  // já entram assim que a tela monta. Hotel e tipo só dão pra selecionar
+  // depois que loadOptions() preenche as opções (senão o value não existe
+  // ainda no <select>/nos botões).
+  const restoredDraft = loadDraft(profile);
+  if (restoredDraft) {
+    titleInput.value = restoredDraft.title || '';
+    costCenterInput.value = restoredDraft.costCenter || '';
+    supplierInput.value = restoredDraft.supplier || '';
+    descriptionInput.value = restoredDraft.description || '';
+    internalNotesInput.value = restoredDraft.internalNotes || '';
+    amountInput.value = restoredDraft.amount || '';
+    draftNotice.style.display = 'block';
+  }
+
+  function applyDraftAfterOptionsLoaded() {
+    if (!restoredDraft) return;
+    if (restoredDraft.hotelId) hotelSelect.value = restoredDraft.hotelId;
+    if (restoredDraft.typeId) selectType(restoredDraft.typeId);
+    refreshRoutePreview();
   }
 
   loadOptions();
@@ -307,6 +412,7 @@ export function renderNovaSolicitacao() {
 
       await submitDocument(document.id);
 
+      clearDraft(profile);
       toast('✅ Solicitação enviada para aprovação');
       navigate('dashboard');
     } catch (err) {

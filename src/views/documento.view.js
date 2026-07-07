@@ -5,7 +5,7 @@ import { navigate } from '../routes/router.js';
 import { openModal } from '../components/modal.js';
 import { ROLE_LABEL } from '../constants/roles.js';
 import { activeStepInfo, isOverdue, ageLabel } from '../services/documents.service.js';
-import { fetchDocumentDetail, fetchAuditLogs, addComment, downloadDocumentFile } from '../services/document-detail.service.js';
+import { fetchDocumentDetail, fetchAuditLogs, addComment, downloadDocumentFile, getPreviewFileUrl, isPreviewable } from '../services/document-detail.service.js';
 import { confirmIdentityForSignature, processApproval, cancelDocument, resendApprovalNotification, canUserApprove } from '../services/approvals.service.js';
 import { buildValidationUrl, generateQrDataUrl } from '../services/certificate.service.js';
 
@@ -217,16 +217,26 @@ export function renderDocumento(documentId) {
   function renderArquivos(doc) {
     const files = [...(doc.document_files || [])].sort((a, b) => a.file_order - b.file_order);
     if (!files.length) return '<div class="empty">Nenhum arquivo anexado.</div>';
-    return files
+    const header =
+      files.length > 1
+        ? `<div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+             <button type="button" class="btn btn-brass" id="btnPreviewAll" style="padding:7px 12px">👁 Visualizar todos</button>
+           </div>`
+        : '';
+    const list = files
       .map(
         (f) => `
       <div class="file-item" data-id="${f.id}">
         <div class="fnum">${f.file_order}</div>
         <div><b>${f.original_filename}</b><br><span>${((f.size_bytes || 0) / 1024).toFixed(0)} KB</span></div>
-        <button type="button" class="btn btn-ghost btn-download-file" style="margin-left:auto;padding:6px 10px">Baixar</button>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button type="button" class="btn btn-ghost btn-preview-file" style="padding:6px 10px">Visualizar</button>
+          <button type="button" class="btn btn-ghost btn-download-file" style="padding:6px 10px">Baixar</button>
+        </div>
       </div>`
       )
       .join('');
+    return header + list;
   }
 
   function renderHistorico(doc, auditLogs) {
@@ -397,6 +407,22 @@ export function renderDocumento(documentId) {
       });
     });
 
+    content.querySelectorAll('.btn-preview-file').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const fileId = btn.closest('[data-id]').dataset.id;
+        const file = state.doc.document_files.find((f) => f.id === fileId);
+        openFileViewer([file]);
+      });
+    });
+
+    const btnPreviewAll = content.querySelector('#btnPreviewAll');
+    if (btnPreviewAll) {
+      btnPreviewAll.addEventListener('click', () => {
+        const files = [...(state.doc.document_files || [])].sort((a, b) => a.file_order - b.file_order);
+        openFileViewer(files);
+      });
+    }
+
     const btnComment = content.querySelector('#btnComment');
     if (btnComment) {
       btnComment.addEventListener('click', async () => {
@@ -433,6 +459,53 @@ export function renderDocumento(documentId) {
           certQr.innerHTML = `<img src="${dataUrl}" width="120" height="120" alt="QR Code de validação do certificado">`;
         }
       });
+    }
+  }
+
+  // Mostra um ou vários arquivos de uma vez, sem baixar — PDF e imagem
+  // renderizam inline (iframe/img); os demais tipos (xls/doc etc.) o
+  // navegador não sabe pré-visualizar sozinho, então caem num link de
+  // abrir/baixar em vez de travar a tela com um erro.
+  async function openFileViewer(files) {
+    const { modal, close } = openModal(`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h3 style="margin:0">${files.length > 1 ? `Visualizar arquivos (${files.length})` : 'Visualizar arquivo'}</h3>
+        <button type="button" class="btn btn-ghost" id="btnCloseViewer" style="padding:6px 12px">Fechar</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:24px;max-height:75vh;overflow:auto">
+        ${files.map((f) => `<div class="empty" style="padding:30px" data-viewer-slot="${f.id}">Carregando ${f.original_filename}…</div>`).join('')}
+      </div>
+    `);
+    modal.style.maxWidth = '90vw';
+    modal.style.width = '90vw';
+    modal.querySelector('#btnCloseViewer').addEventListener('click', close);
+
+    for (const f of files) {
+      const slot = modal.querySelector(`[data-viewer-slot="${f.id}"]`);
+      if (!slot) continue;
+      try {
+        const url = await getPreviewFileUrl(f, { documentId, userId: profile?.id });
+        if (isPreviewable(f)) {
+          slot.outerHTML =
+            f.mime_type === 'application/pdf'
+              ? `<div>
+                   <div style="font-size:13px;font-weight:600;margin-bottom:6px">${f.original_filename}</div>
+                   <iframe src="${url}" style="width:100%;height:70vh;border:1px solid var(--line);border-radius:10px" title="${f.original_filename}"></iframe>
+                 </div>`
+              : `<div>
+                   <div style="font-size:13px;font-weight:600;margin-bottom:6px">${f.original_filename}</div>
+                   <img src="${url}" alt="${f.original_filename}" style="max-width:100%;border:1px solid var(--line);border-radius:10px">
+                 </div>`;
+        } else {
+          slot.outerHTML = `
+            <div class="notice">
+              Pré-visualização não disponível para este tipo de arquivo (${f.original_filename}).
+              <a href="${url}" target="_blank" rel="noopener">Abrir/baixar em nova aba</a>
+            </div>`;
+        }
+      } catch (err) {
+        slot.outerHTML = `<div class="notice" style="color:var(--danger)">Erro ao carregar ${f.original_filename}: ${err.message}</div>`;
+      }
     }
   }
 
