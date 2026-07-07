@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase.js';
+import { supabase, extractFunctionErrorMessage } from '../config/supabase.js';
 
 // Chama a Edge Function admin-actions, que roda com a service_role key no
 // servidor — nunca no frontend. Usada só para operações que a API normal
@@ -6,7 +6,7 @@ import { supabase } from '../config/supabase.js';
 // resetar MFA de outra pessoa).
 async function callAdminAction(body) {
   const { data, error } = await supabase.functions.invoke('admin-actions', { body });
-  if (error) throw new Error(error.message || 'Erro ao executar ação administrativa.');
+  if (error) throw new Error(await extractFunctionErrorMessage(error, 'Erro ao executar ação administrativa.'));
   if (data?.error) throw new Error(data.error);
   return data;
 }

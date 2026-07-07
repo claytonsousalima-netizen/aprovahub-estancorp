@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase.js';
+import { supabase, extractFunctionErrorMessage } from '../config/supabase.js';
 import { openReauthModal } from '../components/reauth-modal.js';
 
 // Confirma a identidade de quem está assinando (aprovando/reprovando um
@@ -17,7 +17,7 @@ export async function processApproval({ documentId, decision, comment, password 
   const { data, error } = await supabase.functions.invoke('process-approval', {
     body: { documentId, decision, comment, password },
   });
-  if (error) throw new Error(error.message || 'Erro ao processar a decisão.');
+  if (error) throw new Error(await extractFunctionErrorMessage(error, 'Erro ao processar a decisão.'));
   if (data?.error) throw new Error(data.error);
   return data.document;
 }
