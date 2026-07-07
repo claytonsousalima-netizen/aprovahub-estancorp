@@ -19,7 +19,10 @@ export async function extractFunctionErrorMessage(error, fallback) {
   if (error?.context && typeof error.context.json === 'function') {
     try {
       const body = await error.context.json();
-      if (body?.error) return body.error;
+      if (body?.error) {
+        // DIAGNÓSTICO TEMPORÁRIO — remover depois de identificar a causa do 403.
+        return body.debug ? `${body.error} | debug: ${JSON.stringify(body.debug)}` : body.error;
+      }
     } catch {
       // corpo não era JSON — segue para o fallback
     }
