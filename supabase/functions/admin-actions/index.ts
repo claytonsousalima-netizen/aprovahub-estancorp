@@ -67,7 +67,13 @@ Deno.serve(async (req) => {
       const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
         data: { full_name, role_global, company_id: callerProfile.company_id },
       });
-      if (error) return json({ error: error.message }, 400);
+      if (error) {
+        // DIAGNÓSTICO TEMPORÁRIO — remover depois de identificar a causa do 400.
+        return json(
+          { error: error.message || 'Erro ao convidar (sem mensagem).', debug: { name: error.name, status: error.status, code: (error as { code?: string }).code } },
+          400
+        );
+      }
       return json({ ok: true, userId: data.user?.id });
     }
 
