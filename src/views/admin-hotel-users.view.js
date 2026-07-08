@@ -140,9 +140,10 @@ function openEditForm(link, onSaved) {
 async function openLinkForm(profile, onSaved) {
   const [hotels, usersResult] = await Promise.all([
     fetchManageableHotels(profile),
-    supabase.from('profiles').select('id, full_name, email').order('full_name'),
+    supabase.from('profiles').select('id, full_name, email, role_global').order('full_name'),
   ]);
   const users = usersResult.data || [];
+  const roleByUserId = new Map(users.map((u) => [u.id, u.role_global]));
 
   if (!hotels.length) {
     toast('⚠ Você não tem hotéis para gerenciar vínculos.');
@@ -162,6 +163,9 @@ async function openLinkForm(profile, onSaved) {
     <div class="field" style="margin-top:12px">
       <label>Papel no hotel</label>
       <select id="fRole">${ROLES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:6px">
+        Já vem igual ao Papel Global desse usuário — só troque se ele precisar de uma autoridade diferente especificamente neste hotel.
+      </div>
     </div>
     <div id="formError" style="color:var(--danger);font-size:12.5px;margin-top:10px;display:none"></div>
     <div class="modal-actions">
@@ -169,6 +173,18 @@ async function openLinkForm(profile, onSaved) {
       <button class="btn btn-ok" id="btnSave">Vincular</button>
     </div>
   `);
+
+  // Papel no Hotel só existe pra dar uma autoridade DIFERENTE da global
+  // naquele hotel específico — no caso comum (mesma autoridade em todo
+  // lugar) o admin não deveria precisar escolher de novo, só confirmar.
+  const userSelect = modal.querySelector('#fUser');
+  const roleSelect = modal.querySelector('#fRole');
+  function applyDefaultRole() {
+    const defaultRole = roleByUserId.get(userSelect.value);
+    if (defaultRole) roleSelect.value = defaultRole;
+  }
+  userSelect.addEventListener('change', applyDefaultRole);
+  applyDefaultRole();
 
   modal.querySelector('#btnCancel').addEventListener('click', close);
 
