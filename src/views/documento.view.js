@@ -9,6 +9,17 @@ import { fetchDocumentDetail, fetchAuditLogs, addComment, downloadDocumentFile, 
 import { confirmIdentityForSignature, processApproval, cancelDocument, resendApprovalNotification, canUserApprove } from '../services/approvals.service.js';
 import { buildValidationUrl, generateQrDataUrl } from '../services/certificate.service.js';
 import { buildProcessPdf, processPdfFileName } from '../services/process-export.service.js';
+import {
+  fetchQuoteComparison,
+  addProposal as addQuoteProposal,
+  renameProposal as renameQuoteProposal,
+  linkProposalFile as linkQuoteProposalFile,
+  removeProposal as removeQuoteProposal,
+  addRow as addQuoteRow,
+  renameRow as renameQuoteRow,
+  removeRow as removeQuoteRow,
+  setCellValue as setQuoteCellValue,
+} from '../services/quote-comparison.service.js';
 
 const fmt = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const STATUS_LABEL = { draft: 'Rascunho', pending: 'Pendente', approved: 'Aprovado', rejected: 'Reprovado', cancelled: 'Cancelado', expired: 'Expirado' };
@@ -18,6 +29,7 @@ const NO_COMMENT_ROLES = ['auditor', 'juridico'];
 const TABS = [
   { id: 'resumo', label: 'Resumo' },
   { id: 'arquivos', label: 'Arquivos' },
+  { id: 'comparativo', label: 'Comparativo' },
   { id: 'historico', label: 'Histórico/Auditoria' },
   { id: 'comentarios', label: 'Comentários' },
   { id: 'certificado', label: 'Certificado' },
@@ -54,6 +66,12 @@ export function renderDocumento(documentId) {
       state.auditLogs = await fetchAuditLogs(documentId);
     } catch {
       state.auditLogs = null;
+    }
+
+    try {
+      state.quoteComparison = await fetchQuoteComparison(documentId);
+    } catch {
+      state.quoteComparison = { rows: [], proposals: [], values: [] };
     }
 
     render();
@@ -171,6 +189,7 @@ export function renderDocumento(documentId) {
     const doc = state.doc;
     if (state.activeTab === 'resumo') return renderResumo(doc);
     if (state.activeTab === 'arquivos') return renderArquivos(doc);
+    if (state.activeTab === 'comparativo') return renderComparativo(doc);
     if (state.activeTab === 'historico') return renderHistorico(doc, state.auditLogs);
     if (state.activeTab === 'comentarios') return renderComentarios(doc);
     if (state.activeTab === 'certificado') return renderCertificado(doc);
@@ -242,6 +261,110 @@ export function renderDocumento(documentId) {
       )
       .join('');
     return header + list;
+  }
+
+  // Só quem criou o documento (ou um admin) pode montar/editar o
+  // comparativo, e só enquanto o documento ainda não foi decidido — depois
+  // de aprovado/reprovado a tela vira somente leitura pra todo mundo,
+  // igual ao restante do processo.
+  function canEditComparativo(doc) {
+    return (doc.status === 'draft' || doc.status === 'pending') && (profile?.id === doc.created_by || ADMIN_LIKE_ROLES.includes(profile?.role_global));
+  }
+
+  function renderComparativo(doc) {
+    const qc = state.quoteComparison || { rows: [], proposals: [], values: [] };
+    const canEdit = canEditComparativo(doc);
+    const files = doc.document_files || [];
+    const valueMap = new Map(qc.values.map((v) => [`${v.row_id}:${v.proposal_id}`, v.value]));
+
+    let html = `<div class="notice" style="margin-bottom:14px">Comparativo opcional das propostas anexadas — não é obrigatório preencher; os arquivos originais continuam disponíveis na aba Arquivos.</div>`;
+
+    if (!qc.proposals.length) {
+      html += `<div class="empty">Nenhuma proposta adicionada ainda.</div>`;
+    } else {
+      html += `<div style="overflow-x:auto"><table class="quote-table" style="width:100%;border-collapse:collapse;font-size:12.5px">
+        <thead><tr>
+          <td style="min-width:130px"></td>
+          ${qc.proposals
+            .map(
+              (p) => `
+            <td data-proposal-id="${p.id}" style="padding:6px 8px;vertical-align:top;min-width:170px">
+              <div style="display:flex;align-items:center;gap:6px">
+                ${
+                  canEdit
+                    ? `<input class="qc-proposal-label" data-proposal-id="${p.id}" value="${p.label}" style="font-size:12.5px;font-weight:700;border:1px solid transparent;background:transparent;width:100%;padding:3px 4px;border-radius:6px">
+                       <button type="button" class="btn-icon qc-remove-proposal" data-proposal-id="${p.id}" title="Remover proposta" style="border:none;background:none;color:var(--danger);cursor:pointer;font-size:14px">✕</button>`
+                    : `<b>${p.label}</b>`
+                }
+              </div>
+              <div style="margin-top:4px">
+                ${
+                  canEdit
+                    ? `<select class="qc-proposal-file" data-proposal-id="${p.id}" style="font-size:11px;padding:3px 5px;max-width:100%">
+                         <option value="">Sem arquivo vinculado</option>
+                         ${files.map((f) => `<option value="${f.id}" ${f.id === p.file_id ? 'selected' : ''}>${f.original_filename}</option>`).join('')}
+                       </select>`
+                    : p.file_id && p.document_files
+                      ? `<button type="button" class="qc-view-file" data-file-id="${p.file_id}" style="border:none;background:none;color:var(--petrol);cursor:pointer;font-size:11px;padding:0;text-decoration:underline">📎 ${p.document_files.original_filename}</button>`
+                      : `<span style="color:var(--muted);font-size:11px">sem arquivo vinculado</span>`
+                }
+              </div>
+            </td>`
+            )
+            .join('')}
+        </tr></thead>
+        <tbody>
+          ${qc.rows
+            .map(
+              (r) => `
+            <tr data-row-id="${r.id}">
+              <td style="padding:6px 8px;white-space:nowrap;border-top:1px solid var(--line)">
+                ${
+                  canEdit
+                    ? `<div style="display:flex;align-items:center;gap:6px">
+                         <input class="qc-row-label" data-row-id="${r.id}" value="${r.label}" style="font-size:12.5px;font-weight:600;border:1px solid transparent;background:transparent;width:130px;padding:3px 4px;border-radius:6px">
+                         <button type="button" class="btn-icon qc-remove-row" data-row-id="${r.id}" title="Remover linha" style="border:none;background:none;color:var(--danger);cursor:pointer;font-size:13px">✕</button>
+                       </div>`
+                    : `<b>${r.label}</b>`
+                }
+              </td>
+              ${qc.proposals
+                .map((p) => {
+                  const val = valueMap.get(`${r.id}:${p.id}`) || '';
+                  return `<td style="padding:6px 8px;border-top:1px solid var(--line)">${
+                    canEdit
+                      ? `<input class="qc-cell" data-row-id="${r.id}" data-proposal-id="${p.id}" value="${val}" style="width:100%;box-sizing:border-box;font-size:12.5px;padding:6px 8px;border:1px solid var(--line);border-radius:6px">`
+                      : val || '<span style="color:var(--muted)">—</span>'
+                  }</td>`;
+                })
+                .join('')}
+            </tr>`
+            )
+            .join('')}
+        </tbody>
+      </table></div>`;
+
+      if (canEdit) {
+        html += `<button type="button" class="btn btn-ghost" id="btnAddQuoteRow" style="margin-top:10px">+ Adicionar linha</button>`;
+      }
+    }
+
+    if (canEdit) {
+      html += `
+        <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line)">
+          <h4 style="margin-bottom:8px">Adicionar proposta</h4>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <input id="newProposalLabel" placeholder="Nome do fornecedor/proposta" style="flex:1;min-width:160px">
+            <select id="newProposalFile" style="min-width:160px">
+              <option value="">Sem arquivo vinculado</option>
+              ${files.map((f) => `<option value="${f.id}">${f.original_filename}</option>`).join('')}
+            </select>
+            <button type="button" class="btn btn-brass" id="btnAddProposal">+ Adicionar</button>
+          </div>
+        </div>`;
+    }
+
+    return html;
   }
 
   function renderHistorico(doc, auditLogs) {
@@ -438,6 +561,8 @@ export function renderDocumento(documentId) {
       });
     }
 
+    wireComparativoEvents();
+
     const btnComment = content.querySelector('#btnComment');
     if (btnComment) {
       btnComment.addEventListener('click', async () => {
@@ -472,6 +597,159 @@ export function renderDocumento(documentId) {
       generateQrDataUrl(url).then((dataUrl) => {
         if (dataUrl && content.contains(certQr)) {
           certQr.innerHTML = `<img src="${dataUrl}" width="120" height="120" alt="QR Code de validação do certificado">`;
+        }
+      });
+    }
+  }
+
+  // Depois de qualquer alteração estrutural (adicionar/remover linha ou
+  // proposta) redesenha a tabela inteira. Edições de texto (label de
+  // linha/proposta, valor de célula) só salvam no banco ao sair do campo
+  // ("change", não "input") e não redesenham nada — o campo já mostra o
+  // que foi digitado, redesenhar do zero só arriscaria perder o foco.
+  function rerenderComparativo() {
+    content.querySelector('#tabPanel').innerHTML = renderComparativo(state.doc);
+    wireTabEvents();
+  }
+
+  function wireComparativoEvents() {
+    if (state.activeTab !== 'comparativo') return;
+
+    content.querySelectorAll('.qc-cell').forEach((input) => {
+      input.addEventListener('change', async () => {
+        const { rowId, proposalId } = input.dataset;
+        try {
+          await setQuoteCellValue({ documentId, rowId, proposalId, value: input.value });
+          const qc = state.quoteComparison;
+          const existing = qc.values.find((v) => v.row_id === rowId && v.proposal_id === proposalId);
+          if (existing) existing.value = input.value;
+          else qc.values.push({ row_id: rowId, proposal_id: proposalId, value: input.value });
+        } catch (err) {
+          toast(`⚠ ${err.message}`);
+        }
+      });
+    });
+
+    content.querySelectorAll('.qc-row-label').forEach((input) => {
+      input.addEventListener('change', async () => {
+        const rowId = input.dataset.rowId;
+        try {
+          await renameQuoteRow(rowId, input.value);
+          const row = state.quoteComparison.rows.find((r) => r.id === rowId);
+          if (row) row.label = input.value;
+        } catch (err) {
+          toast(`⚠ ${err.message}`);
+        }
+      });
+    });
+
+    content.querySelectorAll('.qc-proposal-label').forEach((input) => {
+      input.addEventListener('change', async () => {
+        const proposalId = input.dataset.proposalId;
+        try {
+          await renameQuoteProposal(proposalId, input.value);
+          const proposal = state.quoteComparison.proposals.find((p) => p.id === proposalId);
+          if (proposal) proposal.label = input.value;
+        } catch (err) {
+          toast(`⚠ ${err.message}`);
+        }
+      });
+    });
+
+    content.querySelectorAll('.qc-proposal-file').forEach((select) => {
+      select.addEventListener('change', async () => {
+        const proposalId = select.dataset.proposalId;
+        try {
+          await linkQuoteProposalFile(proposalId, select.value || null);
+          const proposal = state.quoteComparison.proposals.find((p) => p.id === proposalId);
+          if (proposal) proposal.file_id = select.value || null;
+        } catch (err) {
+          toast(`⚠ ${err.message}`);
+        }
+      });
+    });
+
+    content.querySelectorAll('.qc-view-file').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const file = state.doc.document_files.find((f) => f.id === btn.dataset.fileId);
+        if (file) openFileViewer([file]);
+      });
+    });
+
+    content.querySelectorAll('.qc-remove-row').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Remover esta linha do comparativo?')) return;
+        try {
+          await removeQuoteRow(btn.dataset.rowId);
+          const qc = state.quoteComparison;
+          qc.rows = qc.rows.filter((r) => r.id !== btn.dataset.rowId);
+          qc.values = qc.values.filter((v) => v.row_id !== btn.dataset.rowId);
+          rerenderComparativo();
+        } catch (err) {
+          toast(`⚠ ${err.message}`);
+        }
+      });
+    });
+
+    content.querySelectorAll('.qc-remove-proposal').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Remover esta proposta do comparativo? Os valores digitados dela serão perdidos (o arquivo anexado continua na aba Arquivos).')) return;
+        try {
+          await removeQuoteProposal(btn.dataset.proposalId);
+          const qc = state.quoteComparison;
+          qc.proposals = qc.proposals.filter((p) => p.id !== btn.dataset.proposalId);
+          qc.values = qc.values.filter((v) => v.proposal_id !== btn.dataset.proposalId);
+          rerenderComparativo();
+        } catch (err) {
+          toast(`⚠ ${err.message}`);
+        }
+      });
+    });
+
+    const btnAddQuoteRow = content.querySelector('#btnAddQuoteRow');
+    if (btnAddQuoteRow) {
+      btnAddQuoteRow.addEventListener('click', async () => {
+        const label = prompt('Nome da linha (ex.: Garantia, Frete, Item específico):');
+        if (!label || !label.trim()) return;
+        try {
+          const qc = state.quoteComparison;
+          const row = await addQuoteRow({ documentId, label: label.trim(), rowCount: qc.rows.length });
+          qc.rows.push(row);
+          rerenderComparativo();
+        } catch (err) {
+          toast(`⚠ ${err.message}`);
+        }
+      });
+    }
+
+    const btnAddProposal = content.querySelector('#btnAddProposal');
+    if (btnAddProposal) {
+      btnAddProposal.addEventListener('click', async () => {
+        const labelInput = content.querySelector('#newProposalLabel');
+        const fileSelect = content.querySelector('#newProposalFile');
+        const label = labelInput.value.trim();
+        if (!label) {
+          toast('⚠ Informe um nome para a proposta (ex.: nome do fornecedor).');
+          return;
+        }
+        btnAddProposal.disabled = true;
+        try {
+          const qc = state.quoteComparison;
+          const { proposal, newRows } = await addQuoteProposal({
+            documentId,
+            label,
+            fileId: fileSelect.value || null,
+            userId: profile.id,
+            hasExistingRows: qc.rows.length > 0,
+            proposalCount: qc.proposals.length,
+          });
+          qc.proposals.push(proposal);
+          if (newRows.length) qc.rows.push(...newRows);
+          rerenderComparativo();
+        } catch (err) {
+          toast(`⚠ ${err.message}`);
+        } finally {
+          btnAddProposal.disabled = false;
         }
       });
     }
