@@ -58,6 +58,22 @@ function loadDraft(profile) {
   }
 }
 
+// Hotel não conta como "preenchido" aqui: com um só hotel vinculado ele já
+// vem pré-selecionado sozinho (sem ação do usuário), então um rascunho que
+// só tem hotelId não representa nada que valha a pena avisar/restaurar.
+function isDraftMeaningful(draft) {
+  if (!draft) return false;
+  return !!(
+    draft.title?.trim() ||
+    draft.description?.trim() ||
+    draft.costCenter?.trim() ||
+    draft.supplier?.trim() ||
+    draft.internalNotes?.trim() ||
+    draft.typeId ||
+    (draft.amount && parseAmountToNumber(draft.amount) > 0)
+  );
+}
+
 function clearDraft(profile) {
   try {
     localStorage.removeItem(draftKey(profile));
@@ -344,7 +360,13 @@ export function renderNovaSolicitacao() {
   // já entram assim que a tela monta. Hotel e tipo só dão pra selecionar
   // depois que loadOptions() preenche as opções (senão o value não existe
   // ainda no <select>/nos botões).
-  const restoredDraft = loadDraft(profile);
+  const rawDraft = loadDraft(profile);
+  const restoredDraft = isDraftMeaningful(rawDraft) ? rawDraft : null;
+  if (rawDraft && !restoredDraft) {
+    // Só tinha hotel (pré-selecionado sozinho) ou lixo de uma sessão
+    // anterior — não é um rascunho de verdade, então nem avisa nem restaura.
+    clearDraft(profile);
+  }
   if (restoredDraft) {
     titleInput.value = restoredDraft.title || '';
     costCenterInput.value = restoredDraft.costCenter || '';

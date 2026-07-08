@@ -37,8 +37,21 @@ export function registerView(name, renderFn) {
   views.set(name, renderFn);
 }
 
+export function hasView(name) {
+  return views.has(name);
+}
+
 export function navigate(view, param) {
   location.hash = param ? `${view}/${param}` : view;
+}
+
+// Re-renderiza a tela indicada pelo hash atual da URL, sem trocar o hash —
+// usado quando a sessão é reavaliada (ex.: app reiniciando porque o
+// navegador recarregou a aba em segundo plano) mas o usuário já estava numa
+// tela válida: evita o "salto" para a rota padrão do perfil por cima do que
+// já estava na barra de endereço.
+export function renderCurrentHash() {
+  render();
 }
 
 export function startRouter() {

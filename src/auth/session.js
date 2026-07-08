@@ -1,8 +1,13 @@
 import { supabase } from '../config/supabase.js';
 import { fetchMyProfile, signOut as authSignOut } from './auth.js';
 import { hasVerifiedTotpFactor, getAssuranceLevel } from './mfa.js';
-import { navigate } from '../routes/router.js';
+import { navigate, hasView, renderCurrentHash } from '../routes/router.js';
 import { toast } from '../components/toast.js';
+
+// Telas do fluxo de autenticação em si — se o hash da URL apontar pra uma
+// delas no momento em que routeAfterAuth() roda, não faz sentido "preservar"
+// esse hash (o usuário não estava de fato usando o app ali).
+const AUTH_FLOW_VIEWS = new Set(['login', 'forgot-password', 'set-password', 'mfa-setup', 'mfa-challenge']);
 
 let currentSession = null;
 let currentProfile = null;
@@ -97,6 +102,19 @@ async function routeAfterAuth() {
   }
 
   notify();
+
+  // Se o hash da URL já aponta pra uma tela válida do app (não uma tela do
+  // próprio fluxo de login), preserva ela em vez de forçar a rota padrão do
+  // papel por cima — isso é o que acontece, por exemplo, quando o navegador
+  // descarta a aba em segundo plano (economia de memória) e a recarrega ao
+  // voltar o foco: o app reinicia do zero, mas o usuário não "saiu" da tela
+  // em que estava, só trocou de janela e voltou.
+  const currentHash = location.hash.slice(1).split('/')[0];
+  if (currentHash && !AUTH_FLOW_VIEWS.has(currentHash) && hasView(currentHash)) {
+    renderCurrentHash();
+    return;
+  }
+
   navigate(defaultRouteForRole(currentProfile.role_global));
 }
 
