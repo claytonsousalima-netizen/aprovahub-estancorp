@@ -243,7 +243,7 @@
     <h1>AprovaHub Estancorp</h1>
     <p>Guia de uso do portal de aprovação eletrônica de documentos financeiros — cotações, compras, contratos e locações — com trilha de evidências, assinatura por senha ou MFA e certificado de aprovação.</p>
     <div class="meta">
-      <div><b>10</b>perfis de usuário</div>
+      <div><b>8</b>perfis de usuário</div>
       <div><b>23</b>telas</div>
       <div><b>2</b>menus (operação e administração)</div>
       <div><b>v1.0</b>07/07/2026</div>
@@ -310,8 +310,6 @@
         <tr><td><span class="pill-role">lider_area</span></td><td class="yes">Sim</td><td class="yes">Nível 1</td><td class="no">Não</td><td>Primeira aprovação, tipicamente vinculado a um hotel.</td></tr>
         <tr><td><span class="pill-role">lider_administrativo</span></td><td class="yes">Sim</td><td class="yes">Nível 2</td><td class="no">Não</td><td>Segunda aprovação, alçada corporativa.</td></tr>
         <tr><td><span class="pill-role">gerente_geral</span></td><td class="yes">Sim</td><td class="yes">Nível 3</td><td class="no">Não</td><td>Aprovação final para valores mais altos.</td></tr>
-        <tr><td><span class="pill-role">financeiro</span></td><td class="no">Não</td><td>Se etapa exigir</td><td class="no">Não</td><td>Consulta, audita e exporta; aprova só se a regra citar esse papel explicitamente.</td></tr>
-        <tr><td><span class="pill-role">auditor</span></td><td class="no">Não</td><td class="no">Não</td><td class="no">Não</td><td>Somente leitura de todos os documentos e evidências da empresa.</td></tr>
         <tr><td><span class="pill-role">juridico</span></td><td class="no">Não</td><td class="no">Não</td><td class="no">Não</td><td>Consulta documentos e certificados, somente leitura.</td></tr>
       </tbody>
     </table>
@@ -396,13 +394,13 @@
     </div>
     <div class="note">
       <b>O que cada perfil enxerga</b>
-      <span class="pill-role">solicitante</span> vê só os documentos que criou. <span class="pill-role">lider_area</span>/<span class="pill-role">lider_administrativo</span>/<span class="pill-role">gerente_geral</span> veem os documentos em que estão no fluxo de aprovação. <span class="pill-role">admin_corporativo</span>/<span class="pill-role">financeiro</span>/<span class="pill-role">auditor</span>/<span class="pill-role">juridico</span> veem tudo da empresa. <span class="pill-role">admin_hotel</span> vê os hotéis sob sua responsabilidade. <span class="pill-role">super_admin</span> vê tudo.
+      <span class="pill-role">solicitante</span> vê só os documentos que criou. <span class="pill-role">lider_area</span>/<span class="pill-role">lider_administrativo</span>/<span class="pill-role">gerente_geral</span> veem os documentos em que estão no fluxo de aprovação. <span class="pill-role">admin_corporativo</span>/<span class="pill-role">juridico</span> veem tudo da empresa. <span class="pill-role">admin_hotel</span> vê os hotéis sob sua responsabilidade. <span class="pill-role">super_admin</span> vê tudo.
     </div>
   </section>
 
   <section id="nova-solicitacao">
     <h3><span class="num">4.2</span>Nova solicitação</h3>
-    <div class="tag-access">🚫 Bloqueado para <span class="badge b-block">auditor</span> <span class="badge b-block">juridico</span> <span class="badge b-block">financeiro</span> — mensagem "Seu papel não pode criar solicitações".</div>
+    <div class="tag-access">🚫 Bloqueado para <span class="badge b-block">juridico</span> — mensagem "Seu papel não pode criar solicitações".</div>
     <p>Tela de criação de um novo documento a ser aprovado.</p>
 
     <h4>Campos do formulário</h4>
@@ -464,7 +462,7 @@
       <li>Aprovador (busca por nome)</li>
     </ul>
 
-    <div class="tag-access">📤 Botão <b>Exportar CSV</b> visível apenas para <span class="badge b-admin">super_admin</span> <span class="badge b-admin">admin_corporativo</span> <span class="badge b-admin">admin_hotel</span> <span class="badge b-admin">financeiro</span> <span class="badge b-admin">auditor</span> <span class="badge b-admin">juridico</span>.</div>
+    <div class="tag-access">📤 Botão <b>Exportar CSV</b> visível apenas para <span class="badge b-admin">super_admin</span> <span class="badge b-admin">admin_corporativo</span> <span class="badge b-admin">admin_hotel</span> <span class="badge b-admin">juridico</span>.</div>
 
     <p>Clique em <b>Abrir</b> em qualquer linha da tabela de resultados para ver o detalhe completo do documento.</p>
   </section>
@@ -515,10 +513,10 @@
 
     <h4>Aba Histórico/Auditoria</h4>
     <p style="font-size:13.5px">Linha do tempo com criação do documento, aprovações e reprovações. Abaixo, a seção <b>Evidências de assinatura</b> mostra apenas as decisões que realmente aconteceram — aprovação, reprovação e emissão de certificado — com autor, papel na época, data/hora, tipo de confirmação de identidade (MFA verificado, senha reconfirmada ou sem reautenticação) e o hash completo daquele evento. Simples visualizações e downloads de arquivo <b>não aparecem aqui</b> — ficam registrados só para fins de auditoria interna.</p>
-    <div class="tag-access">🔒 O bloco <b>Log de auditoria (administrativo)</b>, com as alterações de cadastro feitas por administradores, só aparece para <span class="badge b-admin">admin_corporativo</span> <span class="badge b-admin">financeiro</span> <span class="badge b-admin">auditor</span> <span class="badge b-admin">juridico</span> <span class="badge b-admin">super_admin</span>. Para os demais, aparece um aviso de que essa seção é restrita.</div>
+    <div class="tag-access">🔒 O bloco <b>Log de auditoria (administrativo)</b>, com as alterações de cadastro feitas por administradores, só aparece para <span class="badge b-admin">admin_corporativo</span> <span class="badge b-admin">juridico</span> <span class="badge b-admin">super_admin</span>. Para os demais, aparece um aviso de que essa seção é restrita.</div>
 
     <h4>Aba Comentários</h4>
-    <p style="font-size:13.5px">Comentários em ordem cronológica, com indicação de quando são "Internos" (não visíveis a quem apenas solicitou o documento). Perfis <span class="badge b-block">auditor</span> e <span class="badge b-block">juridico</span> não podem comentar — só ler.</p>
+    <p style="font-size:13.5px">Comentários em ordem cronológica, com indicação de quando são "Internos" (não visíveis a quem apenas solicitou o documento). O perfil <span class="badge b-block">juridico</span> não pode comentar — só ler.</p>
 
     <h4>Aba Certificado</h4>
     <p style="font-size:13.5px">Só aparece quando o documento está <b>totalmente aprovado</b>. Mostra número do certificado, todos os metadados do documento, a lista completa de aprovadores com data, tipo de autenticação e IP de cada aprovação, um QR code e um link de validação. Botões para <b>Imprimir/Salvar PDF</b> e <b>Baixar (.txt)</b>.</p>
@@ -606,7 +604,7 @@
     <ul class="fieldlist">
       <li><b>Usuário</b> — selecionado entre os cadastrados</li>
       <li><b>Hotel</b> — entre os hotéis administráveis por quem está cadastrando</li>
-      <li><b>Papel no hotel</b> — qualquer um dos 10 papéis</li>
+      <li><b>Papel no hotel</b> — qualquer um dos 8 papéis</li>
       <li><b>Ativo</b></li>
     </ul>
     <p style="font-size:13.5px">Botão <b>Remover</b> desfaz o vínculo (pede confirmação, mostrando o nome do usuário e do hotel).</p>
@@ -615,7 +613,7 @@
   <section id="admin-roles">
     <h3><span class="num">5.6</span>Perfis e permissões</h3>
     <div class="tag-access">👁 Consulta (somente leitura), acessível pelos três perfis administrativos.</div>
-    <p>Tela de referência com a descrição oficial de cada um dos 10 papéis do sistema — a mesma explicação da <a href="#perfis">seção 2</a> deste manual, sempre atualizada dentro do próprio sistema.</p>
+    <p>Tela de referência com a descrição oficial de cada um dos 8 papéis do sistema — a mesma explicação da <a href="#perfis">seção 2</a> deste manual, sempre atualizada dentro do próprio sistema.</p>
   </section>
 
   <section id="admin-types">
@@ -707,7 +705,7 @@
       <tbody>
         <tr><td>Aprovação / reprovação / certificado emitido</td><td>Aba Histórico → "Evidências de assinatura"</td><td>Todos que veem o documento</td></tr>
         <tr><td>Visualização / download de arquivo</td><td>Gravado no banco, não exibido nessa seção</td><td>Uso interno de auditoria</td></tr>
-        <tr><td>Alterações administrativas (cadastros)</td><td>Aba Histórico → "Log de auditoria" e tela <a href="#admin-audit">Logs de auditoria</a></td><td>admin_corporativo, financeiro, auditor, juridico, super_admin</td></tr>
+        <tr><td>Alterações administrativas (cadastros)</td><td>Aba Histórico → "Log de auditoria" e tela <a href="#admin-audit">Logs de auditoria</a></td><td>admin_corporativo, juridico, super_admin</td></tr>
       </tbody>
     </table>
   </section>
@@ -722,29 +720,29 @@
           <th>Tela</th>
           <th>super_admin</th><th>admin_corp.</th><th>admin_hotel</th>
           <th>solicitante</th><th>lider_area</th><th>lider_admin.</th>
-          <th>gerente_geral</th><th>financeiro</th><th>auditor</th><th>juridico</th>
+          <th>gerente_geral</th><th>juridico</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td>Dashboard</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-        <tr><td>Nova solicitação</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
-        <tr><td>Minhas aprovações</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-        <tr><td>Arquivo eletrônico</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-        <tr><td>Exportar CSV</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-        <tr><td>Notificações</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-        <tr><td>Comentar em documento</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
-        <tr><td>Log de auditoria (aba do documento)</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-        <tr><td colspan="11" style="background:var(--brass-soft);font-weight:700;color:#7A5C22">Menu de administração</td></tr>
-        <tr><td>Dashboard Admin</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
-        <tr><td>Empresas</td><td class="yes">✓ cria</td><td class="yes">edita</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
-        <tr><td>Hotéis</td><td class="yes">✓ cria</td><td class="yes">cria</td><td class="yes">vê</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
-        <tr><td>Usuários</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
-        <tr><td>Vínculo usuário × hotel</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">seus hotéis</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
-        <tr><td>Perfis e permissões</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
-        <tr><td>Tipos de aprovação</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
-        <tr><td>Regras de alçada</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">seus hotéis</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
-        <tr><td>Parâmetros de segurança</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
-        <tr><td>Logs de auditoria (admin)</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Dashboard</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Nova solicitação</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td>Minhas aprovações</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Arquivo eletrônico</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Exportar CSV</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+        <tr><td>Notificações</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Comentar em documento</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td>Log de auditoria (aba do documento)</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+        <tr><td colspan="9" style="background:var(--brass-soft);font-weight:700;color:#7A5C22">Menu de administração</td></tr>
+        <tr><td>Dashboard Admin</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Empresas</td><td class="yes">✓ cria</td><td class="yes">edita</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Hotéis</td><td class="yes">✓ cria</td><td class="yes">cria</td><td class="yes">vê</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Usuários</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Vínculo usuário × hotel</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">seus hotéis</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Perfis e permissões</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Tipos de aprovação</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Regras de alçada</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">seus hotéis</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Parâmetros de segurança</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Logs de auditoria (admin)</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
       </tbody>
     </table>
     </div>

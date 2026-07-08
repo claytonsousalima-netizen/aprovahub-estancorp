@@ -23,8 +23,8 @@ export async function fetchDocumentDetail(documentId) {
   return data;
 }
 
-// Só admin/financeiro/auditor/jurídico enxergam audit_logs (RLS). Para os
-// demais papéis, tratamos isso como "seção indisponível", não como erro.
+// Só admin corporativo/jurídico (e super admin) enxergam audit_logs (RLS).
+// Para os demais papéis, tratamos isso como "seção indisponível", não erro.
 export async function fetchAuditLogs(documentId) {
   const { data, error } = await supabase
     .from('audit_logs')

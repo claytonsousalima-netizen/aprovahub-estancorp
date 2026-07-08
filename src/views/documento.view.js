@@ -25,7 +25,7 @@ const fmt = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', c
 const STATUS_LABEL = { draft: 'Rascunho', pending: 'Pendente', approved: 'Aprovado', rejected: 'Reprovado', cancelled: 'Cancelado', expired: 'Expirado' };
 const badgeClass = (status) => ({ pending: 'wait', approved: 'ok', rejected: 'no', draft: 'draft', cancelled: 'no', expired: 'no' }[status] || 'draft');
 const ADMIN_LIKE_ROLES = ['super_admin', 'admin_corporativo', 'admin_hotel'];
-const NO_COMMENT_ROLES = ['auditor', 'juridico'];
+const NO_COMMENT_ROLES = ['juridico'];
 const TABS = [
   { id: 'resumo', label: 'Resumo' },
   { id: 'arquivos', label: 'Arquivos' },

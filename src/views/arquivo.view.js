@@ -9,7 +9,7 @@ const fmt = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', c
 
 // Solicitante só enxerga os próprios documentos por RLS de qualquer forma;
 // a exportação em massa fica reservada pra quem já tem visão da empresa/hotel.
-const CAN_EXPORT_ROLES = ['super_admin', 'admin_corporativo', 'admin_hotel', 'financeiro', 'auditor', 'juridico'];
+const CAN_EXPORT_ROLES = ['super_admin', 'admin_corporativo', 'admin_hotel', 'juridico'];
 
 export function renderArquivo() {
   const profile = getProfile();

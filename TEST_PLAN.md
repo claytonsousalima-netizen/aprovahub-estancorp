@@ -36,8 +36,7 @@ Use sempre a senha **`AprovaTeste#2026`** (atende à política: 8+ caracteres, m
 | 5 | teste.gerentegeral@aprovahub.test | Teste Gerente Geral | gerente_geral | **Sim** | Sim |
 | 6 | teste.adminhotel@aprovahub.test | Teste Admin Hotel | admin_hotel | **Sim** | Sim |
 | 7 | teste.admincorp@aprovahub.test | Teste Admin Corporativo | admin_corporativo | **Sim** | Sim |
-| 8 | teste.auditor@aprovahub.test | Teste Auditor | auditor | Não | Sim |
-| 9 | teste.financeiro@aprovahub.test | Teste Financeiro | financeiro | Não | Sim |
+| 8/9 | _(removido)_ | — | Os papéis `auditor` e `financeiro` foram removidos do sistema (não são mais selecionáveis) — ignore essas contas se já existirem. | — | — |
 | 10 | teste.inativo@aprovahub.test | Teste Usuário Inativo | solicitante | Não | **Não** |
 | 11 | teste.semhotel@aprovahub.test | Teste Sem Hotel | lider_area | Não | Sim |
 
@@ -54,7 +53,7 @@ Depois de criar as contas acima, vincule (menos a #11, que fica deliberadamente 
 | Teste Gerente Geral (#5) | Estanplaza Berrini | gerente_geral |
 | Teste Admin Hotel (#6) | Estanplaza Berrini | admin_hotel |
 
-`admin_corporativo`, `auditor` e `financeiro` normalmente enxergam por empresa inteira e não precisam de vínculo por hotel — deixe #7, #8 e #9 sem vínculo, a não ser que algum cenário abaixo peça o contrário.
+`admin_corporativo` normalmente enxerga por empresa inteira e não precisa de vínculo por hotel — deixe #7 sem vínculo, a não ser que algum cenário abaixo peça o contrário.
 
 ## 3. Cenários de teste
 
@@ -149,7 +148,7 @@ Depois de qualquer aprovação/reprovação (cenários 8, 9 ou 13).
 2. **Esperado**: aparece uma entrada de evidência com o nome de quem assinou, papel na época, se foi MFA ou senha reconfirmada, hash da evidência.
 
 ### 16. Audit log é gravado
-Conta: um perfil com acesso ao log administrativo (admin_corporativo, super_admin, auditor).
+Conta: um perfil com acesso ao log administrativo (admin_corporativo, super_admin, juridico).
 1. Ir em Admin → Logs de Auditoria.
 2. **Esperado**: aparecem entradas para ações administrativas recentes (ex.: criação dos usuários de teste, vínculos com hotel) com autor, dado antigo/novo.
 
@@ -165,10 +164,7 @@ Conta: Teste Sem Hotel (#11) — sem nenhum vínculo em `hotel_users`.
 1. Logar e abrir "Pendentes"/"Arquivo".
 2. **Esperado**: nenhum documento do hotel Berrini aparece na lista, mesmo que o papel global (`lider_area`) bata com alguma etapa — falta o vínculo com o hotel.
 
-### 19. Auditor vê e não altera
-Conta: Teste Auditor (#8).
-1. Abrir um documento (de qualquer hotel da empresa).
-2. **Esperado**: consegue ver todas as abas, inclusive histórico/auditoria; não aparece caixa de aprovação; na aba Comentários, não aparece campo para novo comentário (auditor é um papel "sem comentário").
+### 19. _(Removido — papel `auditor` não existe mais no sistema)_
 
 ### 20. Storage não permite download não autorizado
 Conta: Teste Sem Hotel (#11) ou qualquer conta sem acesso ao documento.

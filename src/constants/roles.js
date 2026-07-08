@@ -6,8 +6,6 @@ export const ROLES = [
   ['lider_area', 'Líder da área'],
   ['lider_administrativo', 'Líder administrativo'],
   ['gerente_geral', 'Gerente geral'],
-  ['financeiro', 'Financeiro'],
-  ['auditor', 'Auditor'],
   ['juridico', 'Jurídico'],
 ];
 

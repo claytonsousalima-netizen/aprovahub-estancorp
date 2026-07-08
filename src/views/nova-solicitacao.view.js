@@ -17,7 +17,7 @@ import {
 } from '../services/documents.service.js';
 import { saveDraft, loadDraft, clearDraft } from '../services/draft-storage.js';
 
-const BLOCKED_ROLES = ['auditor', 'juridico', 'financeiro'];
+const BLOCKED_ROLES = ['juridico'];
 
 // Máscara "centavos primeiro": cada dígito digitado empurra os anteriores
 // para a esquerda, como numa calculadora — os 2 últimos dígitos sempre são
