@@ -176,7 +176,8 @@ export function renderDocumento(documentId) {
 
     const info = activeStepInfo(doc, steps);
     const overdue = info && isOverdue(info.startedAt, current.sla_hours);
-    const who = current.assignee?.full_name || ROLE_LABEL[current.role_required] || current.role_required;
+    const roleLabel = ROLE_LABEL[current.role_required] || current.role_required;
+    const who = current.assignee?.full_name || `Qualquer aprovador elegível (${roleLabel})`;
 
     return `
       <p style="font-size:13px;margin-bottom:6px"><b>Próximo aprovador:</b> ${who}</p>
@@ -217,7 +218,7 @@ export function renderDocumento(documentId) {
         else if (s.status === 'rejected') cls = 'rej';
         else if (s.status === 'pending' && s.step_order === doc.current_step_order && doc.status === 'pending') cls = 'now';
 
-        const who = s.status === 'approved' ? s.approver?.full_name || '—' : s.status === 'rejected' ? s.rejecter?.full_name || '—' : s.assignee?.full_name || ROLE_LABEL[s.role_required] || s.role_required;
+        const who = s.status === 'approved' ? s.approver?.full_name || '—' : s.status === 'rejected' ? s.rejecter?.full_name || '—' : s.assignee?.full_name || 'Qualquer aprovador elegível';
 
         const info = cls === 'now' ? activeStepInfo(doc, steps) : null;
         const overdue = cls === 'now' && info && isOverdue(info.startedAt, s.sla_hours);
