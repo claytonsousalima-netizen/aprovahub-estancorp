@@ -35,8 +35,10 @@ export function renderAppLayout(activeView, contentNode) {
       ).join('')}
     </nav>
     <div class="side-user">
-      <div class="avatar" style="background:#14232E">${(profile?.full_name || '?').slice(0, 2).toUpperCase()}</div>
-      <div><b>${profile?.full_name || ''}</b><span>${ROLE_LABEL[profile?.role_global] || profile?.role_global || ''}</span></div>
+      <div class="side-user-top">
+        <div class="avatar" style="background:#14232E">${(profile?.full_name || '?').slice(0, 2).toUpperCase()}</div>
+        <div><b>${profile?.full_name || ''}</b><span>${ROLE_LABEL[profile?.role_global] || profile?.role_global || ''}</span></div>
+      </div>
       <div class="side-user-actions">
         <button id="appChangePassword" title="Alterar senha">Senha</button>
         <button id="appLogout">Sair</button>
