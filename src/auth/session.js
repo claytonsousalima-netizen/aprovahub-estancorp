@@ -3,6 +3,7 @@ import { fetchMyProfile, signOut as authSignOut } from './auth.js';
 import { hasVerifiedTotpFactor, getAssuranceLevel } from './mfa.js';
 import { navigate, hasView, renderCurrentHash } from '../routes/router.js';
 import { toast } from '../components/toast.js';
+import { clearDraft } from '../services/draft-storage.js';
 
 // Telas do fluxo de autenticação em si — se o hash da URL apontar pra uma
 // delas no momento em que routeAfterAuth() roda, não faz sentido "preservar"
@@ -78,6 +79,7 @@ async function routeAfterAuth() {
 
   if (!currentProfile.active) {
     toast('⛔ Sua conta está inativa. Contate o administrador.');
+    clearDraft(currentProfile.id);
     await authSignOut();
     currentSession = null;
     currentProfile = null;
@@ -144,6 +146,10 @@ export async function initSession(authCallbackType) {
     currentSession = session;
 
     if (event === 'SIGNED_OUT') {
+      // A sessão terminou (logout manual ou token invalidado) — o
+      // rascunho de Nova solicitação não pode sobreviver a isso, senão
+      // apareceria pra outra pessoa no mesmo computador compartilhado.
+      if (currentProfile?.id) clearDraft(currentProfile.id);
       currentProfile = null;
       notify();
       navigate('login');

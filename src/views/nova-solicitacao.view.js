@@ -15,6 +15,7 @@ import {
   addInternalNote,
   submitDocument,
 } from '../services/documents.service.js';
+import { saveDraft, loadDraft, clearDraft } from '../services/draft-storage.js';
 
 const BLOCKED_ROLES = ['auditor', 'juridico', 'financeiro'];
 
@@ -32,32 +33,6 @@ function parseAmountToNumber(displayValue) {
   return parseInt(digits || '0', 10) / 100;
 }
 
-// Só os campos de texto/seleção — os arquivos em si (File objects) não dá
-// pra guardar no localStorage nem repor num <input type="file"> depois
-// (o navegador bloqueia isso por segurança), então o rascunho cobre o que
-// mais dói perder: o texto já digitado. Chave por usuário pra não vazar
-// rascunho de uma conta pra outra num computador compartilhado.
-function draftKey(profile) {
-  return `aprovahub_draft_nova_solicitacao_${profile.id}`;
-}
-
-function saveDraft(profile, data) {
-  try {
-    localStorage.setItem(draftKey(profile), JSON.stringify(data));
-  } catch {
-    // localStorage indisponível (modo privado, quota etc.) — só não salva.
-  }
-}
-
-function loadDraft(profile) {
-  try {
-    const raw = localStorage.getItem(draftKey(profile));
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
 // Hotel não conta como "preenchido" aqui: com um só hotel vinculado ele já
 // vem pré-selecionado sozinho (sem ação do usuário), então um rascunho que
 // só tem hotelId não representa nada que valha a pena avisar/restaurar.
@@ -72,14 +47,6 @@ function isDraftMeaningful(draft) {
     draft.typeId ||
     (draft.amount && parseAmountToNumber(draft.amount) > 0)
   );
-}
-
-function clearDraft(profile) {
-  try {
-    localStorage.removeItem(draftKey(profile));
-  } catch {
-    // ignora
-  }
 }
 
 export function renderNovaSolicitacao() {
@@ -197,7 +164,7 @@ export function renderNovaSolicitacao() {
     // Nunca salva depois que o envio já começou — nesse ponto o rascunho
     // em si já virou um documento real no banco (state.draftId).
     if (state.draftId) return;
-    saveDraft(profile, {
+    saveDraft(profile.id, {
       title: titleInput.value,
       costCenter: costCenterInput.value,
       supplier: supplierInput.value,
@@ -215,7 +182,7 @@ export function renderNovaSolicitacao() {
 
   content.querySelector('#btnDiscardDraft').addEventListener('click', (e) => {
     e.preventDefault();
-    clearDraft(profile);
+    clearDraft(profile.id);
     [titleInput, costCenterInput, supplierInput, descriptionInput, internalNotesInput, amountInput].forEach((el) => (el.value = ''));
     hotelSelect.value = '';
     selectType(null);
@@ -360,12 +327,12 @@ export function renderNovaSolicitacao() {
   // já entram assim que a tela monta. Hotel e tipo só dão pra selecionar
   // depois que loadOptions() preenche as opções (senão o value não existe
   // ainda no <select>/nos botões).
-  const rawDraft = loadDraft(profile);
+  const rawDraft = loadDraft(profile.id);
   const restoredDraft = isDraftMeaningful(rawDraft) ? rawDraft : null;
   if (rawDraft && !restoredDraft) {
     // Só tinha hotel (pré-selecionado sozinho) ou lixo de uma sessão
     // anterior — não é um rascunho de verdade, então nem avisa nem restaura.
-    clearDraft(profile);
+    clearDraft(profile.id);
   }
   if (restoredDraft) {
     titleInput.value = restoredDraft.title || '';
@@ -455,7 +422,7 @@ export function renderNovaSolicitacao() {
 
       await submitDocument(document.id);
 
-      clearDraft(profile);
+      clearDraft(profile.id);
       toast('✅ Solicitação enviada para aprovação');
       navigate('dashboard');
     } catch (err) {
