@@ -18,6 +18,20 @@ import {
 
 const BLOCKED_ROLES = ['auditor', 'juridico', 'financeiro'];
 
+// Máscara "centavos primeiro": cada dígito digitado empurra os anteriores
+// para a esquerda, como numa calculadora — os 2 últimos dígitos sempre são
+// os centavos. Formata com ponto de milhar e vírgula decimal (pt-BR).
+function formatAmountDisplay(rawValue) {
+  const digits = String(rawValue).replace(/\D/g, '');
+  const cents = parseInt(digits || '0', 10);
+  return (cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function parseAmountToNumber(displayValue) {
+  const digits = String(displayValue).replace(/\D/g, '');
+  return parseInt(digits || '0', 10) / 100;
+}
+
 // Só os campos de texto/seleção — os arquivos em si (File objects) não dá
 // pra guardar no localStorage nem repor num <input type="file"> depois
 // (o navegador bloqueia isso por segurança), então o rascunho cobre o que
@@ -90,7 +104,7 @@ export function renderNovaSolicitacao() {
         </div>
         <div class="field">
           <label>Valor total (R$) *</label>
-          <input type="number" min="0" step="0.01" id="fAmount" placeholder="0,00">
+          <input type="text" inputmode="decimal" id="fAmount" placeholder="0,00">
         </div>
         <div class="field full">
           <label>Título *</label>
@@ -217,6 +231,7 @@ export function renderNovaSolicitacao() {
     persistDraft();
   });
   amountInput.addEventListener('input', () => {
+    amountInput.value = formatAmountDisplay(amountInput.value);
     refreshRoutePreview();
     persistDraft();
   });
@@ -251,7 +266,7 @@ export function renderNovaSolicitacao() {
 
   async function refreshRoutePreview() {
     const hotelId = hotelSelect.value;
-    const amount = parseFloat(amountInput.value);
+    const amount = parseAmountToNumber(amountInput.value);
     if (!hotelId || !state.selectedTypeId || !(amount > 0)) {
       routePreviewEl.innerHTML = '<div class="rp-t">Preencha hotel, tipo e valor para ver a rota</div>';
       return;
@@ -360,7 +375,7 @@ export function renderNovaSolicitacao() {
     const description = content.querySelector('#fDescription').value.trim();
     const internalNotes = content.querySelector('#fInternalNotes').value.trim();
     const hotelId = hotelSelect.value;
-    const amount = parseFloat(amountInput.value);
+    const amount = parseAmountToNumber(amountInput.value);
 
     const errors = [];
     if (!state.selectedTypeId) errors.push('Selecione o tipo de solicitação.');
