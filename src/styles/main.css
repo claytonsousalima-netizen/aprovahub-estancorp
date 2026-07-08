@@ -60,7 +60,7 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-.
 #app.on{display:grid;grid-template-columns:240px 1fr}
 .sidebar{background:var(--petrol);color:#DDE6E9;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
 .side-brand{padding:20px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
-.nav{padding:14px 10px;flex:1}
+.nav{padding:14px 10px;flex:1;min-height:0;overflow-y:auto}
 .nav-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#7E939C;padding:10px 10px 6px}
 .nav-item{display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:#C4CFD4;padding:10px 12px;border-radius:9px;font-size:13.5px;font-weight:500;text-align:left;margin-bottom:2px}
 .nav-item svg{flex:none}
