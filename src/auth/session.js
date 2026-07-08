@@ -136,6 +136,19 @@ export async function initSession(authCallbackType) {
     // USER_UPDATED também trazem `session` preenchida, e re-rotear nesses
     // casos arrancaria o usuário da tela atual (ex.: no meio de uma
     // assinatura) a cada renovação silenciosa de token em segundo plano.
+    //
+    // SIGNED_IN merece o mesmo cuidado: o próprio SDK do Supabase reemite
+    // esse evento quando a aba recupera o foco (ex.: alt+tab, trocar de
+    // janela), sem ser um login novo de verdade. Se já temos um perfil
+    // carregado para esse mesmo usuário, é essa recuperação de foco — só
+    // atualiza a sessão em memória, sem navegar pra fora da tela atual
+    // (ex.: perderia o formulário de Nova solicitação em andamento).
+    const isRefocusSignIn = event === 'SIGNED_IN' && session && currentProfile?.id === session.user.id;
+    if (isRefocusSignIn) {
+      notify();
+      return;
+    }
+
     if ((event === 'SIGNED_IN' || event === 'PASSWORD_RECOVERY') && session) {
       await routeAfterAuth();
     }
