@@ -874,7 +874,7 @@ export function renderDocumento(documentId) {
     [btnView, btnDownload].forEach((b) => b && (b.disabled = true));
     triggerBtn.textContent = 'Gerando PDF…';
     try {
-      const blob = await buildProcessPdf(state.doc, state.auditLogs, { userId: profile?.id });
+      const blob = await buildProcessPdf(state.doc, state.auditLogs, { userId: profile?.id, quoteComparison: state.quoteComparison });
       const url = URL.createObjectURL(blob);
       if (mode === 'view') {
         window.open(url, '_blank', 'noopener');

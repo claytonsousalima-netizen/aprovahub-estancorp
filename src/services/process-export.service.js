@@ -1,6 +1,7 @@
 import { ROLE_LABEL } from '../constants/roles.js';
 import { buildValidationUrl, generateQrDataUrl } from './certificate.service.js';
 import { getSignedFileUrl, recordFileAccessEvidence } from './document-detail.service.js';
+import { fetchQuoteComparison } from './quote-comparison.service.js';
 
 const fmt = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const dt = (v) => (v ? new Date(v).toLocaleString('pt-BR') : '—');
@@ -141,8 +142,19 @@ async function buildAttachmentPlaceholderPage(pdfDoc, fonts, file, message) {
  * Anexos em formatos que o navegador não sabe embutir num PDF (xls/doc)
  * viram uma página de aviso, não travam a exportação inteira.
  */
-export async function buildProcessPdf(doc, auditLogs, { userId } = {}) {
+export async function buildProcessPdf(doc, auditLogs, { userId, quoteComparison } = {}) {
   const { PDFDocument, StandardFonts, rgb } = await import('https://esm.sh/pdf-lib@1.17.1');
+
+  // Se quem chamou já tinha o comparativo em mãos (ex.: a tela já buscou pra
+  // renderizar a aba), reaproveita — senão busca aqui, pra essa função
+  // funcionar sozinha mesmo chamada de outro lugar sem esse dado pronto.
+  if (!quoteComparison) {
+    try {
+      quoteComparison = await fetchQuoteComparison(doc.id);
+    } catch {
+      quoteComparison = null;
+    }
+  }
 
   const pdfDoc = await PDFDocument.create();
   pdfDoc.setTitle(`Processo de aprovação — ${doc.title}`);
@@ -231,6 +243,27 @@ export async function buildProcessPdf(doc, auditLogs, { userId } = {}) {
     w.text('Os arquivos listados abaixo estão mesclados neste PDF nas páginas seguintes, quando o formato permite; quando não, há uma página de aviso no lugar.', { size: 9, color: fonts.muted });
     for (const f of files) {
       w.text(`${f.file_order}. ${f.original_filename} — ${((f.size_bytes || 0) / 1024).toFixed(0)} KB`, { gap: 2 });
+    }
+  }
+
+  // ---- Comparativo de Propostas (opcional — só entra se houver alguma) ----
+  if (quoteComparison && quoteComparison.proposals?.length) {
+    const valueMap = new Map(quoteComparison.values.map((v) => [`${v.row_id}:${v.proposal_id}`, v.value]));
+    w.newPage();
+    w.heading('Comparativo de Propostas');
+    w.text('Grade preenchida manualmente para comparar as propostas anexadas — os arquivos originais estão mesclados nas páginas de Arquivos anexados.', { size: 9, color: fonts.muted });
+    for (const p of quoteComparison.proposals) {
+      w.subheading(p.label + (p.document_files ? ` — anexo: ${p.document_files.original_filename}` : ' — sem arquivo vinculado'));
+      let hasValue = false;
+      for (const r of quoteComparison.rows) {
+        const val = valueMap.get(`${r.id}:${p.id}`);
+        if (val) {
+          hasValue = true;
+          w.text(`${r.label}: ${val}`, { size: 9.5, gap: 1 });
+        }
+      }
+      if (!hasValue) w.text('Nenhum campo preenchido para esta proposta.', { size: 9, color: fonts.muted, gap: 1 });
+      w.spacer(8);
     }
   }
 
