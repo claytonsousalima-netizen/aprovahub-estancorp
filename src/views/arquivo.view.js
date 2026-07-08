@@ -81,6 +81,9 @@ export function renderArquivo() {
       const [hotels, types] = await Promise.all([fetchMyHotels(profile), fetchApprovalTypes()]);
       fields.hotel.insertAdjacentHTML('beforeend', hotels.map((h) => `<option value="${h.id}">${h.name}</option>`).join(''));
       fields.type.insertAdjacentHTML('beforeend', types.map((t) => `<option value="${t.id}">${t.name}</option>`).join(''));
+      // Com um só hotel vinculado não há filtro de fato — já mostra ele
+      // selecionado, em vez de "Todos os hotéis" (que aqui daria no mesmo).
+      if (hotels.length === 1) fields.hotel.value = hotels[0].id;
     } catch (err) {
       toast(`⚠ ${err.message}`);
     }

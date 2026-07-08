@@ -309,11 +309,17 @@ export function renderNovaSolicitacao() {
         btn.addEventListener('click', () => selectType(btn.dataset.id));
       });
 
-      hotelSelect.innerHTML = hotels.length
-        ? `<option value="">Selecione…</option>${hotels.map((h) => `<option value="${h.id}">${h.name} (${h.code})</option>`).join('')}`
-        : '<option value="">Nenhum hotel disponível</option>';
+      // Com um só hotel vinculado não há nada a escolher de fato — mostra
+      // ele já selecionado, sem a opção "Selecione…" no meio do caminho.
+      hotelSelect.innerHTML =
+        hotels.length === 0
+          ? '<option value="">Nenhum hotel disponível</option>'
+          : hotels.length === 1
+            ? `<option value="${hotels[0].id}">${hotels[0].name} (${hotels[0].code})</option>`
+            : `<option value="">Selecione…</option>${hotels.map((h) => `<option value="${h.id}">${h.name} (${h.code})</option>`).join('')}`;
 
       applyDraftAfterOptionsLoaded();
+      if (hotels.length === 1) refreshRoutePreview();
     } catch (err) {
       toast(`⚠ ${err.message}`);
     }
