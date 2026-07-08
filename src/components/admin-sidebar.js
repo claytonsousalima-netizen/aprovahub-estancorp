@@ -2,6 +2,7 @@ import { getProfile } from '../auth/session.js';
 import { navigate } from '../routes/router.js';
 import { signOut } from '../auth/auth.js';
 import { fetchUnreadCount } from '../services/notifications.service.js';
+import { ROLE_LABEL } from '../constants/roles.js';
 
 export const ADMIN_ROLES = ['super_admin', 'admin_corporativo', 'admin_hotel'];
 
@@ -43,14 +44,18 @@ export function renderAdminLayout(activeView, contentNode) {
     </nav>
     <div class="side-user">
       <div class="avatar" style="background:#14232E">${(profile?.full_name || '?').slice(0, 2).toUpperCase()}</div>
-      <div><b>${profile?.full_name || ''}</b><span>${profile?.role_global || ''}</span></div>
-      <button id="adminLogout">Sair</button>
+      <div><b>${profile?.full_name || ''}</b><span>${ROLE_LABEL[profile?.role_global] || profile?.role_global || ''}</span></div>
+      <div class="side-user-actions">
+        <button id="adminChangePassword" title="Alterar senha">Senha</button>
+        <button id="adminLogout">Sair</button>
+      </div>
     </div>
   `;
 
   aside.querySelectorAll('[data-view]').forEach((btn) => {
     btn.addEventListener('click', () => navigate(btn.dataset.view));
   });
+  aside.querySelector('#adminChangePassword').addEventListener('click', () => navigate('change-password'));
   aside.querySelector('#adminLogout').addEventListener('click', () => signOut());
 
   if (profile?.id) {

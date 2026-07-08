@@ -6,6 +6,58 @@ import { toast } from '../components/toast.js';
 import { inviteUser, createTestUser, resetUserMfa } from '../services/admin.service.js';
 import { ROLES, ROLE_LABEL } from '../constants/roles.js';
 
+const fmtMoney = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+function formatValueRange(min, max) {
+  if (max == null) return `a partir de ${fmtMoney(min)}`;
+  return `${fmtMoney(min)} a ${fmtMoney(max)}`;
+}
+
+// O "nível" de aprovação de um papel (1º, 2º, 3º...) não é uma propriedade
+// fixa do papel — é definido pela ordem em que ele foi colocado em cada
+// regra de alçada (Admin → Regras de alçada → Etapas). Em vez de embutir um
+// número fixo no nome do papel (que ficaria errado se alguém montar uma
+// regra fora do padrão usual), calculamos aqui, a partir do que está
+// realmente configurado hoje, em quais etapas cada papel aparece.
+async function fetchApprovalLevelsByRole() {
+  const { data, error } = await supabase
+    .from('approval_rule_steps')
+    .select('role_required, step_order, approval_rules!inner(active, hotel_id, approval_type_id, min_amount, max_amount, hotels(name), approval_types(name))')
+    .eq('active', true)
+    .eq('approval_rules.active', true);
+  if (error) throw new Error(error.message);
+
+  const map = new Map();
+  for (const row of data || []) {
+    const list = map.get(row.role_required) || [];
+    list.push({
+      stepOrder: row.step_order,
+      hotelName: row.approval_rules.hotels?.name || 'Todas as unidades',
+      typeName: row.approval_rules.approval_types?.name || 'Todos os tipos',
+      min: row.approval_rules.min_amount,
+      max: row.approval_rules.max_amount,
+    });
+    map.set(row.role_required, list);
+  }
+  return map;
+}
+
+function summarizeApprovalLevels(levels) {
+  if (!levels || !levels.length) return null;
+  return [...new Set(levels.map((l) => l.stepOrder))].sort((a, b) => a - b);
+}
+
+function renderApprovalLevelHint(levels) {
+  if (!levels || !levels.length) {
+    return 'Esse papel não aparece como aprovador em nenhuma regra de alçada ativa hoje.';
+  }
+  const sorted = [...levels].sort((a, b) => a.stepOrder - b.stepOrder);
+  return (
+    'Hoje aprova em:<br>' +
+    sorted.map((l) => `Etapa ${l.stepOrder} — ${l.hotelName} · ${l.typeName} · ${formatValueRange(l.min, l.max)}`).join('<br>')
+  );
+}
+
 export function renderAdminUsers() {
   const content = document.createElement('div');
   content.innerHTML = `
@@ -40,7 +92,10 @@ export function renderAdminUsers() {
 }
 
 async function loadUsers(tbody, profile) {
-  const { data, error } = await supabase.from('profiles').select('*').order('full_name');
+  const [{ data, error }, approvalLevels] = await Promise.all([
+    supabase.from('profiles').select('*').order('full_name'),
+    fetchApprovalLevelsByRole().catch(() => new Map()),
+  ]);
 
   if (error) {
     tbody.innerHTML = `<tr><td colspan="6" class="empty">Erro ao carregar: ${error.message}</td></tr>`;
@@ -60,7 +115,12 @@ async function loadUsers(tbody, profile) {
     <tr data-id="${u.id}">
       <td><b>${u.full_name}</b></td>
       <td class="mono">${u.email}</td>
-      <td>${ROLE_LABEL[u.role_global] || u.role_global}</td>
+      <td>${ROLE_LABEL[u.role_global] || u.role_global}${
+        (() => {
+          const steps = summarizeApprovalLevels(approvalLevels.get(u.role_global));
+          return steps ? `<br><span style="font-size:11px;color:var(--muted)">Aprova na${steps.length > 1 ? 's' : ''} etapa${steps.length > 1 ? 's' : ''} ${steps.join(', ')}</span>` : '';
+        })()
+      }</td>
       <td>${
         u.active
           ? '<span class="badge b-ok"><span class="dot"></span>Ativo</span>'
@@ -102,6 +162,27 @@ async function loadUsers(tbody, profile) {
   });
 }
 
+// Preenche/atualiza a dica de nível de aprovação abaixo do <select> de
+// papel em qualquer um dos 3 formulários (editar/convidar/criar teste) —
+// busca as regras de alçada configuradas hoje e recalcula ao trocar o papel.
+function wireRoleLevelHint(modal) {
+  const select = modal.querySelector('#fRole');
+  const hintEl = modal.querySelector('#roleLevelHint');
+  if (!select || !hintEl) return;
+
+  fetchApprovalLevelsByRole()
+    .then((approvalLevels) => {
+      const update = () => {
+        hintEl.innerHTML = renderApprovalLevelHint(approvalLevels.get(select.value));
+      };
+      select.addEventListener('change', update);
+      update();
+    })
+    .catch(() => {
+      hintEl.textContent = 'Não foi possível carregar os níveis de aprovação configurados.';
+    });
+}
+
 function openEditForm(user, onSaved) {
   const { modal, close } = openModal(`
     <h3>Editar usuário</h3>
@@ -109,6 +190,7 @@ function openEditForm(user, onSaved) {
     <div class="field" style="margin-top:12px">
       <label>Papel global</label>
       <select id="fRole">${ROLES.map(([v, l]) => `<option value="${v}" ${v === user.role_global ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      <div id="roleLevelHint" style="font-size:11.5px;color:var(--muted);margin-top:6px">Carregando níveis de aprovação…</div>
     </div>
     <div class="field" style="margin-top:12px"><label><input type="checkbox" id="fActive" ${user.active ? 'checked' : ''}> Ativo</label></div>
     <div class="field" style="margin-top:8px"><label><input type="checkbox" id="fMfa" ${user.mfa_required ? 'checked' : ''}> Exigir MFA</label></div>
@@ -119,6 +201,7 @@ function openEditForm(user, onSaved) {
     </div>
   `);
 
+  wireRoleLevelHint(modal);
   modal.querySelector('#btnCancel').addEventListener('click', close);
 
   modal.querySelector('#btnSave').addEventListener('click', async () => {
@@ -160,6 +243,7 @@ function openInviteForm(onSaved) {
     <div class="field" style="margin-top:12px">
       <label>Papel global</label>
       <select id="fRole">${ROLES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select>
+      <div id="roleLevelHint" style="font-size:11.5px;color:var(--muted);margin-top:6px">Carregando níveis de aprovação…</div>
     </div>
     <div id="formError" style="color:var(--danger);font-size:12.5px;margin-top:10px;display:none"></div>
     <div class="modal-actions">
@@ -168,6 +252,7 @@ function openInviteForm(onSaved) {
     </div>
   `);
 
+  wireRoleLevelHint(modal);
   modal.querySelector('#btnCancel').addEventListener('click', close);
 
   modal.querySelector('#btnSend').addEventListener('click', async () => {
@@ -208,6 +293,7 @@ function openCreateTestUserForm(onSaved) {
     <div class="field" style="margin-top:12px">
       <label>Papel global</label>
       <select id="fRole">${testRoles.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select>
+      <div id="roleLevelHint" style="font-size:11.5px;color:var(--muted);margin-top:6px">Carregando níveis de aprovação…</div>
     </div>
     <div class="field" style="margin-top:8px"><label><input type="checkbox" id="fMfa" checked> Exigir MFA</label></div>
     <div class="field" style="margin-top:8px"><label><input type="checkbox" id="fActive" checked> Ativo</label></div>
@@ -218,6 +304,7 @@ function openCreateTestUserForm(onSaved) {
     </div>
   `);
 
+  wireRoleLevelHint(modal);
   modal.querySelector('#btnCancel').addEventListener('click', close);
 
   modal.querySelector('#btnSend').addEventListener('click', async () => {

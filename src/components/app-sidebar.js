@@ -2,6 +2,7 @@ import { getProfile } from '../auth/session.js';
 import { navigate } from '../routes/router.js';
 import { signOut } from '../auth/auth.js';
 import { fetchUnreadCount } from '../services/notifications.service.js';
+import { ROLE_LABEL } from '../constants/roles.js';
 
 const MENU = [
   { view: 'dashboard', label: 'Dashboard' },
@@ -35,14 +36,18 @@ export function renderAppLayout(activeView, contentNode) {
     </nav>
     <div class="side-user">
       <div class="avatar" style="background:#14232E">${(profile?.full_name || '?').slice(0, 2).toUpperCase()}</div>
-      <div><b>${profile?.full_name || ''}</b><span>${profile?.role_global || ''}</span></div>
-      <button id="appLogout">Sair</button>
+      <div><b>${profile?.full_name || ''}</b><span>${ROLE_LABEL[profile?.role_global] || profile?.role_global || ''}</span></div>
+      <div class="side-user-actions">
+        <button id="appChangePassword" title="Alterar senha">Senha</button>
+        <button id="appLogout">Sair</button>
+      </div>
     </div>
   `;
 
   aside.querySelectorAll('[data-view]').forEach((btn) => {
     btn.addEventListener('click', () => navigate(btn.dataset.view));
   });
+  aside.querySelector('#appChangePassword').addEventListener('click', () => navigate('change-password'));
   aside.querySelector('#appLogout').addEventListener('click', () => signOut());
 
   if (profile?.id) {
