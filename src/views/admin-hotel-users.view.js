@@ -3,7 +3,7 @@ import { renderAdminLayout } from '../components/admin-sidebar.js';
 import { getProfile } from '../auth/session.js';
 import { openModal } from '../components/modal.js';
 import { toast } from '../components/toast.js';
-import { ROLES, ROLE_LABEL } from '../constants/roles.js';
+import { ROLE_LABEL, selectableRoles } from '../constants/roles.js';
 
 export function renderAdminHotelUsers() {
   const content = document.createElement('div');
@@ -69,7 +69,7 @@ async function loadLinks(tbody, profile) {
   tbody.querySelectorAll('.btn-edit').forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = btn.closest('tr').dataset.id;
-      openEditForm(byId.get(id), () => loadLinks(tbody, profile));
+      openEditForm(byId.get(id), profile, () => loadLinks(tbody, profile));
     });
   });
 
@@ -103,13 +103,13 @@ async function fetchManageableHotels(profile) {
   return (data || []).map((r) => r.hotels).filter(Boolean);
 }
 
-function openEditForm(link, onSaved) {
+function openEditForm(link, profile, onSaved) {
   const { modal, close } = openModal(`
     <h3>Editar vínculo</h3>
     <p>${link.profiles?.full_name} · ${link.hotels?.name}</p>
     <div class="field">
       <label>Papel no hotel</label>
-      <select id="fRole">${ROLES.map(([v, l]) => `<option value="${v}" ${v === link.role_hotel ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      <select id="fRole">${selectableRoles(profile).map(([v, l]) => `<option value="${v}" ${v === link.role_hotel ? 'selected' : ''}>${l}</option>`).join('')}</select>
     </div>
     <div class="field" style="margin-top:12px"><label><input type="checkbox" id="fActive" ${link.active ? 'checked' : ''}> Ativo</label></div>
     <div id="formError" style="color:var(--danger);font-size:12.5px;margin-top:10px;display:none"></div>
@@ -162,7 +162,7 @@ async function openLinkForm(profile, onSaved) {
     </div>
     <div class="field" style="margin-top:12px">
       <label>Papel no hotel</label>
-      <select id="fRole">${ROLES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select>
+      <select id="fRole">${selectableRoles(profile).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select>
       <div style="font-size:11.5px;color:var(--muted);margin-top:6px">
         Já vem igual ao Papel Global desse usuário — só troque se ele precisar de uma autoridade diferente especificamente neste hotel.
       </div>

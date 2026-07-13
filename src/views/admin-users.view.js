@@ -4,7 +4,7 @@ import { getProfile } from '../auth/session.js';
 import { openModal } from '../components/modal.js';
 import { toast } from '../components/toast.js';
 import { inviteUser, createTestUser, resetUserMfa } from '../services/admin.service.js';
-import { ROLES, ROLE_LABEL } from '../constants/roles.js';
+import { ROLES, ROLE_LABEL, selectableRoles } from '../constants/roles.js';
 
 const fmtMoney = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -183,12 +183,6 @@ function wireRoleLevelHint(modal) {
     .catch(() => {
       hintEl.textContent = 'Não foi possível carregar os níveis de aprovação configurados.';
     });
-}
-
-// admin_corporativo não pode conceder o papel super_admin a ninguém (nem
-// a si mesmo) — só um super_admin vê essa opção no seletor de papel.
-function selectableRoles(profile) {
-  return profile?.role_global === 'super_admin' ? ROLES : ROLES.filter(([v]) => v !== 'super_admin');
 }
 
 function openEditForm(user, profile, onSaved) {
