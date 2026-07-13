@@ -8,9 +8,9 @@ export function openModal(innerHtml) {
     bg.remove();
   }
 
-  bg.addEventListener('click', (e) => {
-    if (e.target === bg) close();
-  });
+  // Clicar fora (no fundo escurecido) não fecha mais o modal — só os
+  // botões explícitos (Cancelar/Salvar/etc. de cada formulário) chamam
+  // close(). Evita perder o que já foi digitado por um clique acidental.
 
   return { modal: bg.querySelector('.modal'), close };
 }
