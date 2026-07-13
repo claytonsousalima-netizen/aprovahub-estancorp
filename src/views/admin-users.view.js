@@ -83,7 +83,7 @@ export function renderAdminUsers() {
 
   const tbody = content.querySelector('#usersBody');
   const refresh = () => loadUsers(tbody, profile);
-  btnInvite.addEventListener('click', () => openInviteForm(refresh));
+  btnInvite.addEventListener('click', () => openInviteForm(profile, refresh));
   btnCreateTest.addEventListener('click', () => openCreateTestUserForm(refresh));
 
   refresh();
@@ -128,10 +128,12 @@ async function loadUsers(tbody, profile) {
       }</td>
       <td>${u.mfa_required ? '<span class="badge b-wait"><span class="dot"></span>Obrigatório</span>' : '<span class="badge b-draft">Opcional</span>'}</td>
       <td>${
-        canManage
+        canManage && (u.role_global !== 'super_admin' || profile?.role_global === 'super_admin')
           ? `<button class="btn btn-ghost btn-edit" style="padding:6px 10px">Editar</button>
              <button class="btn btn-ghost btn-reset-mfa" style="padding:6px 10px">Resetar MFA</button>`
-          : ''
+          : canManage && u.role_global === 'super_admin'
+            ? '<span style="font-size:11px;color:var(--muted)">🔒 Só super_admin edita</span>'
+            : ''
       }</td>
     </tr>`
     )
@@ -140,7 +142,7 @@ async function loadUsers(tbody, profile) {
   tbody.querySelectorAll('.btn-edit').forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = btn.closest('tr').dataset.id;
-      openEditForm(byId.get(id), () => loadUsers(tbody, profile));
+      openEditForm(byId.get(id), profile, () => loadUsers(tbody, profile));
     });
   });
 
@@ -183,13 +185,19 @@ function wireRoleLevelHint(modal) {
     });
 }
 
-function openEditForm(user, onSaved) {
+// admin_corporativo não pode conceder o papel super_admin a ninguém (nem
+// a si mesmo) — só um super_admin vê essa opção no seletor de papel.
+function selectableRoles(profile) {
+  return profile?.role_global === 'super_admin' ? ROLES : ROLES.filter(([v]) => v !== 'super_admin');
+}
+
+function openEditForm(user, profile, onSaved) {
   const { modal, close } = openModal(`
     <h3>Editar usuário</h3>
     <div class="field"><label>Nome</label><input id="fName" value="${user.full_name}"></div>
     <div class="field" style="margin-top:12px">
       <label>Papel global</label>
-      <select id="fRole">${ROLES.map(([v, l]) => `<option value="${v}" ${v === user.role_global ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      <select id="fRole">${selectableRoles(profile).map(([v, l]) => `<option value="${v}" ${v === user.role_global ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <div id="roleLevelHint" style="font-size:11.5px;color:var(--muted);margin-top:6px">Carregando níveis de aprovação…</div>
     </div>
     <div class="field" style="margin-top:12px"><label><input type="checkbox" id="fActive" ${user.active ? 'checked' : ''}> Ativo</label></div>
@@ -234,7 +242,7 @@ function openEditForm(user, onSaved) {
   });
 }
 
-function openInviteForm(onSaved) {
+function openInviteForm(profile, onSaved) {
   const { modal, close } = openModal(`
     <h3>Convidar usuário</h3>
     <p>Um e-mail de convite será enviado. A pessoa define a própria senha e configura o MFA no primeiro acesso.</p>
@@ -242,7 +250,7 @@ function openInviteForm(onSaved) {
     <div class="field" style="margin-top:12px"><label>E-mail</label><input type="email" id="fEmail"></div>
     <div class="field" style="margin-top:12px">
       <label>Papel global</label>
-      <select id="fRole">${ROLES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select>
+      <select id="fRole">${selectableRoles(profile).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select>
       <div id="roleLevelHint" style="font-size:11.5px;color:var(--muted);margin-top:6px">Carregando níveis de aprovação…</div>
     </div>
     <div id="formError" style="color:var(--danger);font-size:12.5px;margin-top:10px;display:none"></div>

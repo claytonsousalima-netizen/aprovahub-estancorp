@@ -63,16 +63,17 @@ Deno.serve(async (req) => {
       if (!email || !full_name || !role_global) {
         return json({ error: 'Preencha e-mail, nome e papel.' }, 400);
       }
+      // Só um super_admin pode convidar outro super_admin — admin_corporativo
+      // não pode se auto-conceder (nem conceder a ninguém) esse papel.
+      if (role_global === 'super_admin' && callerProfile.role_global !== 'super_admin') {
+        return json({ error: 'Só um super_admin pode conceder o papel super_admin.' }, 403);
+      }
 
       const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
         data: { full_name, role_global, company_id: callerProfile.company_id },
       });
       if (error) {
-        // DIAGNÓSTICO TEMPORÁRIO — remover depois de identificar a causa do 400.
-        return json(
-          { error: error.message || 'Erro ao convidar (sem mensagem).', debug: { name: error.name, status: error.status, code: (error as { code?: string }).code } },
-          400
-        );
+        return json({ error: error.message || 'Erro ao convidar.' }, 400);
       }
       return json({ ok: true, userId: data.user?.id });
     }
@@ -117,6 +118,13 @@ Deno.serve(async (req) => {
     if (body.type === 'reset_mfa') {
       const { userId } = body;
       if (!userId) return json({ error: 'userId ausente.' }, 400);
+
+      // admin_corporativo não pode mexer na segurança (MFA) de um
+      // super_admin — mesma regra de "não editar acesso de super_admin".
+      const { data: targetProfile } = await admin.from('profiles').select('role_global').eq('id', userId).single();
+      if (targetProfile?.role_global === 'super_admin' && callerProfile.role_global !== 'super_admin') {
+        return json({ error: 'Só um super_admin pode resetar o MFA de outro super_admin.' }, 403);
+      }
 
       const { data: userData, error: getUserError } = await admin.auth.admin.getUserById(userId);
       if (getUserError || !userData?.user) return json({ error: 'Usuário não encontrado.' }, 404);
