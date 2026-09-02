@@ -194,7 +194,7 @@
     <div class="brand-mark">A</div>
     <div><b>AprovaHub</b><small>Estancorp</small></div>
   </div>
-  <div class="sub">Manual de Operação · v1.0</div>
+  <div class="sub">Manual de Operação · v1.1</div>
 
   <h4>Começando</h4>
   <ul>
@@ -246,7 +246,7 @@
       <div><b>8</b>perfis de usuário</div>
       <div><b>23</b>telas</div>
       <div><b>2</b>menus (operação e administração)</div>
-      <div><b>v1.0</b>07/07/2026</div>
+      <div><b>v1.1</b>atualizado</div>
     </div>
   </div>
 
@@ -348,7 +348,16 @@
     <div class="note warn"><b>Link expirado ou já usado</b> Peça um novo convite ou uma nova recuperação de senha — links de e-mail do Supabase só funcionam uma vez.</div>
 
     <h3 id="alterar-senha"><span class="num">3.4</span>Alterar senha</h3>
-    <p>Disponível a qualquer momento para qualquer usuário autenticado. Basta informar a nova senha duas vezes e confirmar. A tela recomenda ativar o MFA para maior segurança.</p>
+    <p>Botão <b>Senha</b>, ao lado de <b>Sair</b> no rodapé do menu lateral — disponível a qualquer momento para qualquer usuário autenticado, em ambos os menus (principal e administração).</p>
+    <ul class="fieldlist">
+      <li><b>Senha atual</b><span class="req">obrigatório</span> — precisa ser confirmada antes de liberar a troca.</li>
+      <li><b>Nova senha</b><span class="req">obrigatório</span> — mínimo 8 caracteres, com maiúscula, minúscula e número.</li>
+      <li><b>Confirmar nova senha</b><span class="req">obrigatório</span></li>
+    </ul>
+    <div class="note">
+      <b>Por que pede a senha atual</b>
+      Sem essa confirmação, qualquer pessoa com acesso a uma sessão já aberta (computador compartilhado, notebook destravado esquecido) poderia trocar a senha e travar o dono de fora da própria conta. Errar a senha atual mostra "Senha incorreta" e não altera nada.
+    </div>
 
     <h3 id="mfa"><span class="num">3.5</span>Autenticação em dois fatores (MFA)</h3>
     <div class="grid2">
@@ -488,10 +497,15 @@
   <section id="documento">
     <h3><span class="num">4.6</span>Detalhe do documento</h3>
     <div class="tag-access">👥 Acessível por todos os perfis com permissão de ver aquele documento específico (veja <a href="#matriz">matriz de acesso</a>) — é onde a aprovação de fato acontece.</div>
-    <p>Tela central do sistema: reúne todas as informações de um documento em 5 abas, mais um painel lateral de ação.</p>
+    <p>Tela central do sistema: reúne todas as informações de um documento em 6 abas, mais um painel lateral de ação.</p>
 
     <h4>Cabeçalho</h4>
-    <p style="font-size:13.5px">Título, status (rascunho/pendente/aprovado/reprovado/cancelado), hotel, tipo, valor, fornecedor, centro de custo e solicitante.</p>
+    <p style="font-size:13.5px">Título, status (rascunho/pendente/aprovado/reprovado/cancelado), hotel, tipo, valor, fornecedor, centro de custo e solicitante. Dois botões ficam sempre visíveis ali, em qualquer aba:</p>
+    <ul class="fieldlist">
+      <li><b>👁 Visualizar processo</b> — gera um PDF consolidando capa/certificado, resumo, arquivos anexados, comparativo de propostas (se houver), histórico/auditoria e comentários, e abre numa nova aba do navegador.</li>
+      <li><b>⬇ Baixar processo (PDF)</b> — gera o mesmo PDF e baixa direto, em vez de abrir.</li>
+    </ul>
+    <p style="font-size:13.5px">Os PDFs e imagens anexados ao documento são mesclados como páginas reais dentro desse PDF consolidado; formatos que o navegador não sabe mesclar (XLS/DOC) entram como uma página avisando que precisam ser baixados separadamente pela aba Arquivos. É um "lote completo" do processo — útil para arquivar ou compartilhar fora do sistema.</p>
 
     <h4>Aba Resumo</h4>
     <p style="font-size:13.5px">Descrição/justificativa e a <b>linha do tempo das aprovações</b>: cada etapa aparece com uma bolinha colorida —</p>
@@ -510,6 +524,14 @@
       <li><b>PNG / JPG / JPEG</b> — visualizado direto na tela</li>
       <li><b>XLS / DOC e outros formatos</b> — sem pré-visualização segura no navegador; a tela oferece um link para abrir/baixar em nova aba</li>
     </ul>
+
+    <h4>Aba Comparativo</h4>
+    <p style="font-size:13.5px">Opcional — compara lado a lado as propostas de fornecedores anexadas, sem depender de planilha externa. <b>Não é obrigatório preencher</b>; o processo funciona normalmente só com os arquivos anexados.</p>
+    <ul class="fieldlist">
+      <li><b>Linhas</b> — compartilhadas pelo documento inteiro (renomear uma atualiza em todas as propostas de uma vez). A primeira proposta adicionada já cria 4 linhas padrão: Fornecedor, Valor total, Prazo de pagamento, Prazo de entrega. Pode adicionar quantas quiser (ex.: um item por hotel, garantia, frete) com <b>+ Adicionar linha</b>.</li>
+      <li><b>Propostas</b> — uma coluna por fornecedor/proposta, cada uma podendo linkar a um dos arquivos já anexados na aba Arquivos (com botão para abrir esse arquivo direto da grade).</li>
+    </ul>
+    <div class="tag-access">✏️ Só quem criou o documento (ou um admin) edita a grade, e só enquanto o documento não foi decidido (pendente ou rascunho) — depois de aprovado/reprovado vira somente leitura pra todo mundo, igual ao resto do processo.</div>
 
     <h4>Aba Histórico/Auditoria</h4>
     <p style="font-size:13.5px">Linha do tempo com criação do documento, aprovações e reprovações. Abaixo, a seção <b>Evidências de assinatura</b> mostra apenas as decisões que realmente aconteceram — aprovação, reprovação e emissão de certificado — com autor, papel na época, data/hora, tipo de confirmação de identidade (MFA verificado, senha reconfirmada ou sem reautenticação) e o hash completo daquele evento. Simples visualizações e downloads de arquivo <b>não aparecem aqui</b> — ficam registrados só para fins de auditoria interna.</p>
@@ -588,13 +610,21 @@
     <p style="font-size:13.5px">Envia um e-mail de convite com link para a pessoa definir a própria senha. Campos: <b>Nome completo</b>, <b>E-mail</b>, <b>Papel global</b>.</p>
 
     <h4>+ Criar usuário de teste</h4>
-    <p style="font-size:13.5px">Cria uma conta já com senha definida por quem está cadastrando, sem enviar e-mail — útil para testes internos. Campos: Nome, E-mail, Senha, Papel global, Exigir MFA, Ativo. O papel <span class="badge b-block">super_admin</span> não pode ser atribuído por esse caminho.</p>
+    <p style="font-size:13.5px">Cria uma conta já com senha definida por quem está cadastrando, sem enviar e-mail — útil para testes internos. Campos: Nome, E-mail, Senha, Papel global, Exigir MFA, Ativo. O papel <span class="badge b-block">super_admin</span> não pode ser atribuído por esse caminho — nem mesmo por um super_admin.</p>
 
     <h4>Editar usuário</h4>
     <p style="font-size:13.5px">Nome, Papel global, status Ativo, checkbox Exigir MFA.</p>
 
+    <h4>Nível de aprovação, calculado na hora</h4>
+    <p style="font-size:13.5px">Abaixo do seletor de Papel Global (nos três formulários — editar, convidar, criar teste), uma dica mostra em qual(is) etapa(s) esse papel realmente aprova hoje, calculado a partir das <a href="#admin-rules">regras de alçada</a> configuradas — atualiza ao trocar o papel selecionado. Na listagem, cada usuário mostra um resumo ("Aprova na etapa 2") embaixo do papel. Não é um número fixo: se nenhuma regra usar aquele papel, aparece "não aparece como aprovador em nenhuma regra ativa hoje".</p>
+
     <h4>Resetar MFA</h4>
     <p style="font-size:13.5px">Remove o segundo fator configurado da pessoa — ela vai precisar configurar um novo app autenticador no próximo login. Use quando alguém perde o celular/app autenticador.</p>
+
+    <div class="note danger">
+      <b>🔒 Ninguém edita um super_admin, exceto outro super_admin</b>
+      Se a linha do usuário é um <span class="pill-role">super_admin</span> e quem está vendo a tela não é, os botões Editar e Resetar MFA somem (mostra "🔒 Só super_admin edita" no lugar), e a opção "Super admin" nem aparece no seletor de papel para conceder a ninguém. Essa é uma trava real do sistema, não só da tela — mesmo tentando por fora, o banco de dados reverte qualquer mudança nesses campos.
+    </div>
   </section>
 
   <section id="admin-hotel-users">
@@ -604,10 +634,14 @@
     <ul class="fieldlist">
       <li><b>Usuário</b> — selecionado entre os cadastrados</li>
       <li><b>Hotel</b> — entre os hotéis administráveis por quem está cadastrando</li>
-      <li><b>Papel no hotel</b> — qualquer um dos 8 papéis</li>
+      <li><b>Papel no hotel</b> — já vem pré-selecionado igual ao Papel Global da pessoa escolhida (atualiza ao trocar de usuário); só troque se ela precisar de uma autoridade diferente especificamente naquele hotel</li>
       <li><b>Ativo</b></li>
     </ul>
     <p style="font-size:13.5px">Botão <b>Remover</b> desfaz o vínculo (pede confirmação, mostrando o nome do usuário e do hotel).</p>
+    <div class="note danger">
+      <b>🔒 "Super admin" também não pode ser concedido aqui</b>
+      A mesma trava da tela Usuários vale para o Papel no Hotel: só um super_admin vê e consegue conceder o papel "Super admin" num vínculo — nem admin_corporativo nem admin_hotel conseguem, mesmo tentando por fora da tela.
+    </div>
   </section>
 
   <section id="admin-roles">
@@ -699,6 +733,9 @@
     <h4>Segregação de funções</h4>
     <p style="font-size:13.5px">Nenhum usuário aprova duas etapas do mesmo documento — mesmo que acumule Papel Global e Papel no Hotel diferentes que, isoladamente, o qualificariam para as duas. Isso garante que cada nível de aprovação represente o julgamento de uma pessoa diferente.</p>
 
+    <h4>Proteção do papel Super Admin</h4>
+    <p style="font-size:13.5px">Só um <span class="pill-role">super_admin</span> pode editar, desativar, rebaixar ou promover o acesso de outro super_admin — seja o Papel Global (tela <a href="#admin-users">Usuários</a>) ou o Papel no Hotel (tela <a href="#admin-hotel-users">Vínculo usuário × hotel</a>). <span class="pill-role">admin_corporativo</span> e <span class="pill-role">admin_hotel</span> não conseguem, mesmo tentando por fora da tela — a trava está no banco de dados, não só na interface.</p>
+
     <h4>O que fica registrado e quem vê</h4>
     <table>
       <thead><tr><th>Registro</th><th>Onde aparece</th><th>Quem vê</th></tr></thead>
@@ -767,11 +804,17 @@
     <p style="font-size:13.5px">Não. Hotel, tipo e valor ficam travados assim que o envio começa, justamente para não alterar a rota de aprovação já calculada. Se precisar mudar algo relevante, cancele a solicitação (se ainda estiver pendente) e crie uma nova.</p>
 
     <h4>O que acontece se eu sair da tela "Nova solicitação" no meio do preenchimento?</h4>
-    <p style="font-size:13.5px">Nada é perdido: os campos de texto ficam salvos automaticamente no seu navegador e são restaurados na próxima vez que você abrir a tela — só os arquivos anexados precisam ser selecionados novamente.</p>
+    <p style="font-size:13.5px">Nada é perdido: os campos de texto ficam salvos automaticamente no seu navegador e são restaurados na próxima vez que você abrir a tela — só os arquivos anexados precisam ser selecionados novamente. Esse rascunho é descartado automaticamente ao sair do sistema (clicar em Sair), pra não vazar de uma conta pra outra num computador compartilhado.</p>
+
+    <h4>Preciso preencher o Comparativo de propostas?</h4>
+    <p style="font-size:13.5px">Não, é opcional. Sem preencher nada, o processo funciona normalmente só com os arquivos anexados na aba Arquivos. O Comparativo existe pra quem quer comparar fornecedores lado a lado sem depender de planilha externa — veja a <a href="#documento">seção 4.6</a>.</p>
+
+    <h4>Por que não consigo editar/promover um usuário Super Admin?</h4>
+    <p style="font-size:13.5px">É proposital: só outro super_admin pode mexer no acesso de um super_admin, seja o Papel Global ou o Papel no Hotel. Se você é admin_corporativo ou admin_hotel, peça para um super_admin fazer essa alteração — veja <a href="#seguranca">Segurança e evidências</a>.</p>
   </section>
 
   <footer>
-    Manual de Operação — AprovaHub Estancorp · gerado a partir da versão em produção em 07/07/2026 · uso interno
+    Manual de Operação — AprovaHub Estancorp · uso interno
   </footer>
 
 </main>
