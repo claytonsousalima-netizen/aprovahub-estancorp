@@ -1,0 +1,75 @@
+# ============================================================
+# GitHub Actions — Auto PR Workflow
+#
+# Trigger: Push to main branch
+# Purpose: Automatically create/update PR from main → main-aws
+# This gates production deploys with a review checkpoint
+# ============================================================
+
+name: auto-pr-main
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create or update PR main -> main-aws
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          git remote set-url origin https://x-access-token:$GH_TOKEN@github.com/${{ github.repository }}.git
+
+          # Create main-aws if it doesn't exist yet
+          if ! git ls-remote --heads origin main-aws | grep -q main-aws; then
+            echo "main-aws does not exist. Creating from main..."
+            git push origin main:main-aws
+            echo "Created main-aws from main. Branches are identical, no PR needed."
+            exit 0
+          fi
+
+          git fetch origin main main-aws
+
+          # If branches are already in sync, close stale PR if any
+          if git diff --quiet origin/main origin/main-aws; then
+            echo "main and main-aws are in sync."
+            PR_NUM=$(gh pr list --base main-aws --head main --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
+            if [ -n "$PR_NUM" ]; then
+              gh pr close "$PR_NUM" --comment "Branches are in sync. Closing PR."
+              echo "Closed stale PR #$PR_NUM."
+            fi
+            exit 0
+          fi
+
+          COMMIT_MSG=$(git log origin/main -1 --format=%s)
+          PR_TITLE="Sync main -> main-aws: $COMMIT_MSG"
+
+          # write PR body to temp file to avoid YAML multi-line issues
+          printf 'PR automatico gerado apos push para main.\n\nCommit: %s\nMensagem: %s\n\nAs validacoes CI serao executadas neste PR.\nApos revisao e aprovacao, faca o merge para publicar em producao.' \
+            "${{ github.sha }}" "$COMMIT_MSG" > /tmp/pr_body.md
+
+          PR_BODY=$(cat /tmp/pr_body.md)
+          PR_NUM=$(gh pr list --base main-aws --head main --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
+
+          if [ -z "$PR_NUM" ]; then
+            gh pr create \
+              --base main-aws \
+              --head main \
+              --title "$PR_TITLE" \
+              --body "$PR_BODY"
+            echo "PR created."
+          else
+            gh pr edit "$PR_NUM" --title "$PR_TITLE" --body "$PR_BODY"
+            echo "PR #$PR_NUM updated."
+          fi
