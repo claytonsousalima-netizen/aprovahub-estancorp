@@ -42,7 +42,7 @@ env:
 
   SERVICE_NAME: aprovahub-estancorp_app
 
-  COMPOSE_FILE: /opt/app-aprovahub-estancorp/docker-compose.yml
+  COMPOSE_FILE: /opt/app-aprovahub/docker-compose.yml
 
   APP_PORT: 8085
 
@@ -326,9 +326,9 @@ jobs:
 
           SERVICE_NAME="aprovahub-estancorp_app"
 
-          COMPOSE_FILE="/opt/app-aprovahub-estancorp/docker-compose.yml"
+          COMPOSE_FILE="/opt/app-aprovahub/docker-compose.yml"
 
-          APP_DIR="/opt/app-aprovahub-estancorp"
+          APP_DIR="/opt/app-aprovahub"
 
           APP_PORT="8085"
 
