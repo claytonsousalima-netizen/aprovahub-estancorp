@@ -1,0 +1,61 @@
+# ============================================================
+# Docker Compose — AprovaHub Estancorp (Docker Swarm)
+#
+# Stack: aprovahub-estancorp
+# Services: app (Nginx serving static SPA)
+# Deployment: 2 replicas, rolling updates, health checks
+#
+# Referência para a VM App (Docker Swarm). O deploy-aws.yml é responsável
+# por substituir a linha "image:" via sed antes de rodar
+# `docker stack deploy` — NÃO edite manualmente na VM.
+# ============================================================
+
+version: '3.8'
+
+services:
+  app:
+    image: ghcr.io/claytonsousalima-netizen/aprovahub-estancorp:latest
+    container_name: aprovahub-estancorp_app
+
+    # Expose port 80 (internal to Swarm overlay network only)
+    # External access via nginx reverse proxy on host
+    expose:
+      - "80"
+
+    # Overlay network for service-to-service communication
+    networks:
+      - aprovahub-estancorp_appnet
+
+    # ===== DOCKER SWARM DEPLOYMENT CONFIG =====
+    deploy:
+      # Run 2 replicas for high availability
+      replicas: 2
+
+      # Rolling update strategy
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+
+      # Automatic rollback on failure
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+
+      # Restart policy
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+        window: 60s
+        delay: 5s
+
+      # Healthcheck (same as Dockerfile)
+      labels:
+        health: "true"
+
+networks:
+  aprovahub-estancorp_appnet:
+    driver: overlay
+    driver_opts:
+      com.docker.network.driver.overlay.vxlan_list: 4789
